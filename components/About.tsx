@@ -12,10 +12,6 @@ const TIMELINE = [
     text: 'Passa a integrar a coligação "Pra Cima, Amazonas", encabeçada pelo candidato a governador David Almeida.',
   },
   {
-    title: "Aliança com Saullo Vianna",
-    text: "Soma forças com o deputado federal Saullo Vianna, ampliando a articulação política pelo interior.",
-  },
-  {
     title: "Candidato a Deputado Estadual — 70111",
     text: "Candidatura deferida pelo TSE, levando a experiência do interior para a Assembleia Legislativa do Amazonas.",
   },
