@@ -6,7 +6,7 @@ import { SOCIAL_LINKS, CAMPAIGN_INFO } from "./content";
 const NAV_LINKS = [
   { href: "/#sobre", label: "Sobre" },
   { href: "/#propostas", label: "Propostas" },
-  { href: "/noticias", label: "Notícias" },
+  { href: "/blog", label: "Blog" },
   { href: "/#coligacao", label: "Coligação" },
   { href: "/#redes", label: "Contato" },
 ];

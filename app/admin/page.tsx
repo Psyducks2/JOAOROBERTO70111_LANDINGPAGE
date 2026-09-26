@@ -43,6 +43,10 @@ export default function AdminPage() {
   const [saveError, setSaveError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
+  // Estados de Upload para Firebase Storage
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+
   // Carrega dados do painel
   const loadData = useCallback(async (currentUser: User) => {
     try {
@@ -92,10 +96,8 @@ export default function AdminPage() {
       : `${emailOrUser}@joaoroberto70111.com`;
 
     try {
-      // 1. Tenta login direto
       await signInWithEmailAndPassword(auth, email, password);
     } catch {
-      // 2. Se falhar, chama o endpoint bootstrap para criar/atualizar o usuário e tenta de novo
       try {
         await fetch("/api/auth/bootstrap", { method: "POST" });
         await signInWithEmailAndPassword(auth, email, password);
@@ -117,7 +119,42 @@ export default function AdminPage() {
     setUser(null);
   };
 
-  // Salvar Postagem
+  // Upload de Imagem para o Firebase Storage
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    setIsUploadingImage(true);
+    setUploadError("");
+
+    try {
+      const token = await user.getIdToken();
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Falha no upload da imagem");
+      }
+
+      const data = await res.json();
+      setCurrentPost((prev) => ({ ...prev, coverImage: data.url }));
+    } catch (err: unknown) {
+      setUploadError(err instanceof Error ? err.message : "Erro ao subir imagem");
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  // Salvar Postagem no Firestore
   const handleSavePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -141,7 +178,7 @@ export default function AdminPage() {
         throw new Error(data.error || "Falha ao salvar postagem");
       }
 
-      setSaveSuccess("Postagem salva com sucesso!");
+      setSaveSuccess("Postagem do blog salva com sucesso!");
       setIsEditingPost(false);
       setCurrentPost({
         title: "",
@@ -165,7 +202,7 @@ export default function AdminPage() {
   // Excluir Postagem
   const handleDeletePost = async (id: string, title: string) => {
     if (!user) return;
-    if (!window.confirm(`Tem certeza que deseja excluir a postagem: "${title}"?`)) {
+    if (!window.confirm(`Tem certeza que deseja excluir esta postagem: "${title}"?`)) {
       return;
     }
 
@@ -235,7 +272,7 @@ export default function AdminPage() {
           <div className="admin-login-header">
             <span className="brand-number">70111</span>
             <h2>Acesso Administrativo</h2>
-            <p>Painel oficial de gerenciamento de conteúdo e notícias</p>
+            <p>Painel oficial de gerenciamento do Blog e da Home</p>
           </div>
 
           {authError && <div className="admin-alert admin-alert--error">{authError}</div>}
@@ -287,12 +324,15 @@ export default function AdminPage() {
         <div className="admin-topbar-left">
           <span className="brand-number">70111</span>
           <div>
-            <h1>Painel do Candidato</h1>
+            <h1>Painel de Controle · João Roberto</h1>
             <span className="admin-user-badge">{user.email}</span>
           </div>
         </div>
 
         <div className="admin-topbar-actions">
+          <Link href="/blog" target="_blank" rel="noopener noreferrer" className="btn btn--secondary btn--sm">
+            Ver Blog ↗
+          </Link>
           <Link href="/" target="_blank" rel="noopener noreferrer" className="btn btn--secondary btn--sm">
             Ver Site ↗
           </Link>
@@ -315,7 +355,7 @@ export default function AdminPage() {
               setIsEditingPost(false);
             }}
           >
-            Notícias & Atualizações ({posts.length})
+            Postagens do Blog ({posts.length})
           </button>
           <button
             type="button"
@@ -326,13 +366,13 @@ export default function AdminPage() {
           </button>
         </div>
 
-        {/* ABA: NOTÍCIAS & ATUALIZAÇÕES */}
+        {/* ABA: POSTAGENS DO BLOG */}
         {activeTab === "posts" && (
           <div className="admin-tab-content">
             <div className="admin-section-header">
               <div>
-                <h2>Notícias e Postagens Recentes</h2>
-                <p>Publique atualizações, eventos e propostas que serão exibidas no blog e na Home.</p>
+                <h2>Gerenciamento do Blog</h2>
+                <p>Crie, edite ou exclua postagens e artigos do candidato. As imagens sobem direto para o Firebase Storage.</p>
               </div>
               {!isEditingPost && (
                 <button
@@ -353,7 +393,7 @@ export default function AdminPage() {
                     setIsEditingPost(true);
                   }}
                 >
-                  + Nova Postagem
+                  + Nova Postagem no Blog
                 </button>
               )}
             </div>
@@ -361,16 +401,16 @@ export default function AdminPage() {
             {/* FORMULÁRIO DE CRIAÇÃO / EDIÇÃO DE POST */}
             {isEditingPost ? (
               <form onSubmit={handleSavePost} className="admin-card admin-post-form">
-                <h3>{currentPost.id ? "Editar Postagem" : "Criar Nova Postagem"}</h3>
+                <h3>{currentPost.id ? "Editar Postagem" : "Criar Nova Postagem no Blog"}</h3>
 
                 <div className="form-grid">
                   <div className="form-group form-group--span2">
-                    <label>Título da Matéria *</label>
+                    <label>Título do Artigo / Post *</label>
                     <input
                       type="text"
                       value={currentPost.title || ""}
                       onChange={(e) => setCurrentPost({ ...currentPost, title: e.target.value })}
-                      placeholder="Ex: João Roberto visita comunidades ribeirinhas..."
+                      placeholder="Ex: João Roberto defende investimentos em infraestrutura no interior..."
                       required
                     />
                   </div>
@@ -381,12 +421,12 @@ export default function AdminPage() {
                       type="text"
                       value={currentPost.slug || ""}
                       onChange={(e) => setCurrentPost({ ...currentPost, slug: e.target.value })}
-                      placeholder="deixe em branco para gerar automático"
+                      placeholder="gerado automaticamente a partir do título"
                     />
                   </div>
 
                   <div className="form-group">
-                    <label>Categoria</label>
+                    <label>Categoria / Tag</label>
                     <input
                       type="text"
                       value={currentPost.category || ""}
@@ -395,39 +435,77 @@ export default function AdminPage() {
                     />
                   </div>
 
-                  <div className="form-group form-group--span2">
-                    <label>URL da Imagem de Capa</label>
-                    <input
-                      type="url"
-                      value={currentPost.coverImage || ""}
-                      onChange={(e) => setCurrentPost({ ...currentPost, coverImage: e.target.value })}
-                      placeholder="https://exemplo.com/foto.jpg"
-                    />
+                  {/* UPLOAD DE IMAGEM COM FIREBASE STORAGE */}
+                  <div className="form-group form-group--span2 upload-group">
+                    <label>Imagem de Capa (Opcional)</label>
+                    <p className="form-hint">
+                      Você pode subir uma foto do seu computador/celular direto para o Firebase Storage, colar uma URL, ou <strong>deixar em branco</strong> se preferir publicar sem imagem!
+                    </p>
+
+                    <div className="upload-box">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        id="image-file-input"
+                        onChange={handleFileUpload}
+                        style={{ display: "none" }}
+                      />
+                      <label htmlFor="image-file-input" className="btn btn--secondary btn--sm">
+                        📁 Subir Foto (Firebase Storage)
+                      </label>
+                      {isUploadingImage && (
+                        <span className="upload-status">Enviando para o Firebase Storage...</span>
+                      )}
+                      {uploadError && <span className="upload-error">{uploadError}</span>}
+                    </div>
+
+                    <div style={{ marginTop: 10 }}>
+                      <input
+                        type="url"
+                        value={currentPost.coverImage || ""}
+                        onChange={(e) => setCurrentPost({ ...currentPost, coverImage: e.target.value })}
+                        placeholder="Ou digite o link direto da imagem (https://...)"
+                      />
+                    </div>
+
+                    {currentPost.coverImage && currentPost.coverImage.trim() !== "" && (
+                      <div className="upload-preview">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={currentPost.coverImage} alt="Pré-visualização" />
+                        <button
+                          type="button"
+                          className="btn-remove-image"
+                          onClick={() => setCurrentPost((prev) => ({ ...prev, coverImage: "" }))}
+                        >
+                          ✕ Remover Foto
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   <div className="form-group form-group--span2">
-                    <label>Resumo Curto (chamada da notícia)</label>
+                    <label>Resumo Curto (chamada do artigo)</label>
                     <textarea
                       rows={2}
                       value={currentPost.summary || ""}
                       onChange={(e) => setCurrentPost({ ...currentPost, summary: e.target.value })}
-                      placeholder="Breve descrição que aparece no card antes do eleitor clicar..."
+                      placeholder="Breve resumo que aparece no card antes do leitor clicar..."
                     />
                   </div>
 
                   <div className="form-group form-group--span2">
-                    <label>Conteúdo Completo da Postagem *</label>
+                    <label>Texto Completo do Artigo *</label>
                     <textarea
                       rows={8}
                       value={currentPost.content || ""}
                       onChange={(e) => setCurrentPost({ ...currentPost, content: e.target.value })}
-                      placeholder="Escreva aqui os detalhes da matéria, depoimentos e fotos..."
+                      placeholder="Escreva aqui o artigo, pronunciamento, prestação de contas..."
                       required
                     />
                   </div>
 
                   <div className="form-group">
-                    <label>Status</label>
+                    <label>Status da Publicação</label>
                     <select
                       value={currentPost.status || "published"}
                       onChange={(e) =>
@@ -437,7 +515,7 @@ export default function AdminPage() {
                         })
                       }
                     >
-                      <option value="published">Publicado</option>
+                      <option value="published">Publicado no Blog</option>
                       <option value="draft">Rascunho (Privado)</option>
                     </select>
                   </div>
@@ -451,14 +529,14 @@ export default function AdminPage() {
                           setCurrentPost({ ...currentPost, featured: e.target.checked })
                         }
                       />
-                      Destacar no topo da página de notícias
+                      Destacar no topo do Blog
                     </label>
                   </div>
                 </div>
 
                 <div className="form-actions">
                   <button type="submit" className="btn btn--primary" disabled={isSaving}>
-                    {isSaving ? "Salvando..." : "Salvar Postagem"}
+                    {isSaving ? "Salvando..." : "Salvar Artigo"}
                   </button>
                   <button
                     type="button"
@@ -474,14 +552,16 @@ export default function AdminPage() {
               <div className="admin-posts-list">
                 {posts.length === 0 ? (
                   <div className="admin-empty-state">
-                    <p>Nenhuma postagem cadastrada ainda.</p>
+                    <div style={{ fontSize: 32, marginBottom: 12 }}>📝</div>
+                    <h3>Nenhuma postagem cadastrada</h3>
+                    <p>O blog está limpo e pronto! Clique no botão acima para criar o primeiro artigo do candidato.</p>
                   </div>
                 ) : (
                   posts.map((post) => (
                     <div key={post.id || post.slug} className="admin-post-item">
                       <div className="admin-post-item-info">
                         <div className="admin-post-item-tags">
-                          <span className="badge-tag">{post.category}</span>
+                          <span className="badge-tag">{post.category || "Artigo"}</span>
                           <span
                             className={`badge-status ${
                               post.status === "published" ? "status-published" : "status-draft"
@@ -492,20 +572,23 @@ export default function AdminPage() {
                           <span className="admin-post-likes">❤️ {post.likes || 0} curtidas</span>
                         </div>
                         <h3>{post.title}</h3>
-                        <p>{post.summary}</p>
-                        <span className="admin-post-date">Publicado em: {post.publishedAt}</span>
+                        <p>{post.summary || post.content.slice(0, 100) + "..."}</p>
+                        <span className="admin-post-date">
+                          {post.publishedAt ? `Data: ${post.publishedAt}` : ""}
+                          {post.coverImage ? " · 📷 Com foto" : " · 📄 Sem foto"}
+                        </span>
                       </div>
 
                       <div className="admin-post-item-actions">
-                        <a
-                          href={`/noticias/${post.slug}`}
+                        <Link
+                          href={`/blog/${post.slug}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="btn-icon"
-                          title="Visualizar no site"
+                          title="Visualizar no blog"
                         >
                           👁️
-                        </a>
+                        </Link>
                         <button
                           type="button"
                           className="btn-icon"
@@ -520,7 +603,7 @@ export default function AdminPage() {
                         <button
                           type="button"
                           className="btn-icon btn-icon--delete"
-                          title="Excluir matéria"
+                          title="Excluir postagem"
                           onClick={() => handleDeletePost(post.id || post.slug, post.title)}
                         >
                           🗑️

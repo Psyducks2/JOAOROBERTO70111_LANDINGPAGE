@@ -38,7 +38,7 @@ export default function Footer() {
             <nav className="footer-nav" aria-label="Navegação do rodapé">
               <Link href="/#sobre">Sobre</Link>
               <Link href="/#propostas">Propostas</Link>
-              <Link href="/noticias">Notícias</Link>
+              <Link href="/blog">Blog</Link>
               <Link href="/#coligacao">Coligação</Link>
               <Link href="/#redes">Contato</Link>
             </nav>

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { adminAuth, adminDb } from "@/lib/firebase-admin";
-import { DEFAULT_POSTS, DEFAULT_HOME_CONTENT } from "@/lib/posts";
+import { DEFAULT_HOME_CONTENT, invalidateCache } from "@/lib/posts";
 
 export async function POST() {
   const email = process.env.ADMIN_DEFAULT_EMAIL || "admin@joaoroberto70111.com";
@@ -9,7 +9,7 @@ export async function POST() {
   const results: {
     authCreated?: boolean;
     authUpdated?: boolean;
-    postsSeeded?: number;
+    mockPostsCleaned?: boolean;
     homeSeeded?: boolean;
     error?: string;
   } = {};
@@ -40,19 +40,21 @@ export async function POST() {
     }
   }
 
-  // 2. Criar postagens iniciais no Firestore se estiver vazio
+  // 2. Limpar postagens mockadas no Firestore
   if (adminDb) {
     try {
-      const postsSnapshot = await adminDb.collection("posts").limit(1).get();
-      if (postsSnapshot.empty) {
-        const batch = adminDb.batch();
-        for (const post of DEFAULT_POSTS) {
-          const docRef = adminDb.collection("posts").doc(post.slug);
-          batch.set(docRef, { ...post, id: post.slug });
-        }
-        await batch.commit();
-        results.postsSeeded = DEFAULT_POSTS.length;
+      const mockSlugs = [
+        "compromisso-com-a-saude-nos-municipios-do-interior",
+        "apoio-ao-produtor-rural-e-ao-escoamento-da-producao",
+        "capacitacao-e-oportunidades-para-a-juventude-amazonense",
+        "post-1",
+        "post-2",
+        "post-3",
+      ];
+      for (const slug of mockSlugs) {
+        await adminDb.collection("posts").doc(slug).delete();
       }
+      results.mockPostsCleaned = true;
 
       const homeDoc = await adminDb.collection("site_settings").doc("home").get();
       if (!homeDoc.exists) {
@@ -64,9 +66,11 @@ export async function POST() {
     }
   }
 
+  invalidateCache();
+
   return NextResponse.json({
     success: true,
-    message: "Ambiente configurado com sucesso!",
+    message: "Ambiente configurado com sucesso e notícias mockadas removidas!",
     email,
     details: results,
   });

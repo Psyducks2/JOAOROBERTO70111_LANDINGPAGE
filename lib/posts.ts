@@ -2,65 +2,7 @@ import { BlogPost, HomeContent } from "./types";
 import { adminDb } from "./firebase-admin";
 import { QueryDocumentSnapshot } from "firebase-admin/firestore";
 
-export const DEFAULT_POSTS: BlogPost[] = [
-  {
-    id: "post-1",
-    title: "Compromisso com a Saúde nos Municípios do Interior",
-    slug: "compromisso-com-a-saude-nos-municipios-do-interior",
-    summary:
-      "Apresentamos propostas para fortalecer o atendimento médico especializado nas calhas dos rios e reduzir as filas de espera na capital.",
-    content: `A saúde da população do interior do Amazonas não pode depender exclusivamente de viagens de horas ou dias até Manaus. Nossa trajetória na gestão pública nos mostrou de perto a realidade das famílias ribeirinhas e dos municípios vizinhos.
-
-Na Assembleia Legislativa do Amazonas (ALEAM), nossa prioridade será articular e destinar emendas impositivas para reforçar os polos regionais de saúde, garantir medicamentos básicos nos postos municipais e valorizar os agentes comunitários de saúde e de endemias.
-
-Seguimos firmes ouvindo os anseios de cada comunidade para construir soluções viáveis e permanentes.`,
-    coverImage: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1200&q=80",
-    category: "Saúde",
-    publishedAt: "2026-09-20",
-    likes: 42,
-    featured: true,
-    status: "published",
-    updatedAt: "2026-09-20T10:00:00Z",
-  },
-  {
-    id: "post-2",
-    title: "Apoio ao Produtor Rural e ao Escoamento da Produção",
-    slug: "apoio-ao-produtor-rural-e-ao-escoamento-da-producao",
-    summary:
-      "O setor primário é o coração da nossa economia no Amazonas. Conheça as diretrizes para estradas vicinais e incentivo à agricultura familiar.",
-    content: `Quem produz o alimento que chega à mesa das famílias amazonenses precisa de respeito, incentivo técnico e estradas vicinais trafegáveis o ano inteiro.
-
-Em nossas conversas com feirantes, cooperativas e produtores rurais, reforçamos que a agricultura familiar sustentável precisa de linhas de crédito facilitadas e menor burocracia para emissão de certidões.
-
-Nosso mandato atuará lado a lado com as associações de produtores para defender investimentos contínuos em infraestrutura de escoamento e assistência técnica no campo.`,
-    coverImage: "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=1200&q=80",
-    category: "Agricultura & Economia",
-    publishedAt: "2026-09-18",
-    likes: 29,
-    featured: false,
-    status: "published",
-    updatedAt: "2026-09-18T14:30:00Z",
-  },
-  {
-    id: "post-3",
-    title: "Capacitação e Oportunidades para a Juventude Amazonense",
-    slug: "capacitacao-e-oportunidades-para-a-juventude-amazonense",
-    summary:
-      "Cursos profissionalizantes conectados à bioeconomia, tecnologia e primeiro emprego são essenciais para transformar o futuro dos nossos jovens.",
-    content: `Os jovens do Amazonas têm talento, energia e vontade de vencer, mas faltam oportunidades concretas de primeiro emprego e cursos profissionalizantes de qualidade, principalmente fora da capital.
-
-Defendemos a ampliação de centros tecnológicos integrados, parcerias com o setor produtivo e incentivo à economia verde e bioeconomia local.
-
-Com qualificação certa, os nossos jovens poderão empreender e construir sua carreira no seu próprio município com dignidade e renda digna.`,
-    coverImage: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1200&q=80",
-    category: "Juventude & Emprego",
-    publishedAt: "2026-09-15",
-    likes: 38,
-    featured: false,
-    status: "published",
-    updatedAt: "2026-09-15T09:00:00Z",
-  },
-];
+export const DEFAULT_POSTS: BlogPost[] = [];
 
 export const DEFAULT_HOME_CONTENT: HomeContent = {
   heroTagline: "CORAGEM PARA FAZER. EXPERIÊNCIA PARA AVANÇAR.",
