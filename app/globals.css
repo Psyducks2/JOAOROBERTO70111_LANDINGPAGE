@@ -214,6 +214,16 @@ h2.title {
   color: var(--navy-deep);
 }
 
+.pill--cnpj {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--white);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
 /* ---------- header ---------- */
 .site-header {
   position: sticky;
@@ -1021,6 +1031,149 @@ body.menu-open {
   height: 18px;
 }
 
+/* ---------- legal card & cnpj highlight ---------- */
+.legal-card {
+  margin-top: 36px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-left: 5px solid var(--orange);
+  border-radius: var(--radius-md);
+  padding: 24px 28px;
+  box-shadow: 0 12px 30px rgba(4, 16, 36, 0.35);
+}
+
+.legal-card-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.legal-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge-official {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--blue);
+  color: var(--white);
+  border-radius: 6px;
+}
+
+.badge-deferida {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.35);
+  border-radius: 6px;
+}
+
+.legal-cnpj-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.legal-cnpj-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--orange);
+}
+
+.legal-cnpj-action-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(8, 31, 68, 0.85);
+  border: 1px solid rgba(240, 146, 58, 0.45);
+  padding: 6px 6px 6px 14px;
+  border-radius: 10px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25), 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.legal-cnpj-number {
+  font-family: var(--font-heading);
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--white);
+  white-space: nowrap;
+  user-select: all;
+}
+
+.btn-copy-cnpj {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--navy-deep);
+  background: var(--orange);
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all var(--dur-s) var(--ease-out);
+  white-space: nowrap;
+}
+
+.btn-copy-cnpj:hover {
+  background: #ffaa5b;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(240, 146, 58, 0.35);
+}
+
+.btn-copy-cnpj.is-copied {
+  background: #22c55e;
+  color: var(--white);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.35);
+}
+
+.legal-card-details {
+  padding: 16px 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: #cdd9ed;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.legal-card-details strong {
+  color: var(--white);
+}
+
+.legal-card-footer {
+  padding-top: 14px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #8fa5c7;
+}
+
+/* Fallback legacy .legal class */
 .legal {
   margin-top: 24px;
   line-height: 1.7;
@@ -1030,6 +1183,41 @@ body.menu-open {
 
 .legal strong {
   color: #e4ecfa;
+}
+
+@media (max-width: 640px) {
+  .legal-card {
+    padding: 20px 16px;
+  }
+
+  .legal-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .legal-cnpj-container {
+    width: 100%;
+    align-items: flex-start;
+  }
+
+  .legal-cnpj-action-group {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .legal-cnpj-number {
+    font-size: 16px;
+  }
+
+  .btn-copy-cnpj {
+    width: 100%;
+    justify-content: center;
+    padding: 10px 14px;
+  }
 }
 
 /* reduced motion */

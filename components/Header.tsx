@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { SOCIAL_LINKS } from "./content";
+import { SOCIAL_LINKS, CAMPAIGN_INFO } from "./content";
 
 const NAV_LINKS = [
   { href: "#sobre", label: "Sobre" },
@@ -10,7 +10,7 @@ const NAV_LINKS = [
   { href: "#redes", label: "Contato" },
 ];
 
-const RIBBON_ITEMS = Array.from({ length: 6 });
+const RIBBON_ITEMS = Array.from({ length: 8 });
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -38,6 +38,9 @@ export default function Header() {
               </span>
               <span className={`pill ${i % 2 === 0 ? "pill--orange" : "pill--blue"}`}>
                 70111
+              </span>
+              <span className="pill pill--cnpj">
+                CNPJ {CAMPAIGN_INFO.cnpj}
               </span>
             </span>
           ))}

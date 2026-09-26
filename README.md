@@ -31,15 +31,15 @@ campanha e canais oficiais de contato.
 │   ├── globals.css       # Todo o design system do site (tokens + componentes)
 │   └── icon.svg          # Favicon
 ├── components/
-│   ├── content.ts        # Links oficiais (Instagram, TikTok, Twibbon)
-│   ├── Header.tsx         # Ribbon animado + menu fixo + menu mobile (client component)
+│   ├── content.ts        # Dados oficiais da campanha (CNPJ, coligação, redes e links)
+│   ├── Header.tsx         # Ribbon animado (com CNPJ) + menu fixo + menu mobile (client component)
 │   ├── Hero.tsx           # Seção principal com a foto recortada
 │   ├── About.tsx          # Seção "Sobre" + linha do tempo da trajetória
 │   ├── Proposals.tsx      # Grade de propostas de campanha
 │   ├── Coalition.tsx      # Seção da coligação "Pra Cima, Amazonas"
 │   ├── Social.tsx         # Cards de redes sociais
 │   ├── FinalCta.tsx       # Chamada final "Vote 70111"
-│   └── Footer.tsx         # Rodapé com o texto legal obrigatório
+│   └── Footer.tsx         # Rodapé com card de destaque legal do CNPJ e botão de copiar
 ├── public/
 │   └── images/
 │       └── joao-roberto-foto-cutout.png   # Foto oficial com fundo removido
