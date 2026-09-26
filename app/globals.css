@@ -2012,6 +2012,8 @@ body.menu-open {
   background: #dcfce7;
   color: #15803d;
   border: 1px solid #bbf7d0;
+}
+
 /* Upload de Imagem e Dicas no Admin */
 .form-hint {
   font-size: 13px;

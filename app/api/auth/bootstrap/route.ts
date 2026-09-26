@@ -3,35 +3,38 @@ import { adminAuth, adminDb } from "@/lib/firebase-admin";
 import { DEFAULT_HOME_CONTENT, invalidateCache } from "@/lib/posts";
 
 export async function POST() {
-  const email = process.env.ADMIN_DEFAULT_EMAIL || "admin@joaoroberto70111.com";
+  const emailsToSeed = [
+    process.env.ADMIN_DEFAULT_EMAIL || "admin@joaoroberto70111.com",
+    "joaoroberto70111@joaoroberto70111.com",
+  ];
   const password = process.env.ADMIN_DEFAULT_PASSWORD || "joaoroberto70111";
 
   const results: {
-    authCreated?: boolean;
-    authUpdated?: boolean;
+    usersSynced?: string[];
     mockPostsCleaned?: boolean;
     homeSeeded?: boolean;
     error?: string;
-  } = {};
+  } = { usersSynced: [] };
 
-  // 1. Criar ou atualizar usuário no Firebase Auth
+  // 1. Criar ou atualizar usuários no Firebase Auth
   if (adminAuth) {
     try {
-      let user;
-      try {
-        user = await adminAuth.getUserByEmail(email);
-        await adminAuth.updateUser(user.uid, {
-          password: password,
-          displayName: "João Roberto 70111",
-        });
-        results.authUpdated = true;
-      } catch {
-        user = await adminAuth.createUser({
-          email: email,
-          password: password,
-          displayName: "João Roberto 70111",
-        });
-        results.authCreated = true;
+      for (const email of emailsToSeed) {
+        try {
+          const user = await adminAuth.getUserByEmail(email);
+          await adminAuth.updateUser(user.uid, {
+            password: password,
+            displayName: "João Roberto 70111",
+          });
+          results.usersSynced?.push(`updated: ${email}`);
+        } catch {
+          await adminAuth.createUser({
+            email: email,
+            password: password,
+            displayName: "João Roberto 70111",
+          });
+          results.usersSynced?.push(`created: ${email}`);
+        }
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -71,7 +74,7 @@ export async function POST() {
   return NextResponse.json({
     success: true,
     message: "Ambiente configurado com sucesso e notícias mockadas removidas!",
-    email,
+    emails: emailsToSeed,
     details: results,
   });
 }

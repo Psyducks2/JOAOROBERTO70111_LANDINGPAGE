@@ -85,33 +85,80 @@ export default function AdminPage() {
     return () => unsubscribe();
   }, [loadData]);
 
-  // Login handler
+  // Login handler com suporte a múltiplos aliases e auto-recuperação
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError("");
     setIsLoggingIn(true);
 
-    const email = emailOrUser.includes("@")
-      ? emailOrUser
-      : `${emailOrUser}@joaoroberto70111.com`;
+    const raw = emailOrUser.trim().toLowerCase();
+    let candidates: string[] = [];
 
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-    } catch {
+    if (raw.includes("@")) {
+      candidates = [raw];
+    } else {
+      candidates = [
+        raw === "joaoroberto70111" ? "joaoroberto70111@joaoroberto70111.com" : null,
+        raw === "admin" ? "admin@joaoroberto70111.com" : null,
+        `${raw}@joaoroberto70111.com`,
+        "joaoroberto70111@joaoroberto70111.com",
+        "admin@joaoroberto70111.com",
+      ].filter((item, index, self): item is string => Boolean(item) && self.indexOf(item) === index);
+    }
+
+    let lastError: unknown = null;
+    let loggedIn = false;
+
+    // 1. Tentar fazer login com cada candidato
+    for (const testEmail of candidates) {
+      try {
+        await signInWithEmailAndPassword(auth, testEmail, password);
+        loggedIn = true;
+        break;
+      } catch (err) {
+        lastError = err;
+      }
+    }
+
+    // 2. Se falhar, tentar sincronizar via bootstrap e re-testar
+    if (!loggedIn) {
       try {
         await fetch("/api/auth/bootstrap", { method: "POST" });
-        await signInWithEmailAndPassword(auth, email, password);
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : "Credenciais inválidas.";
-        setAuthError(
-          message.includes("auth/invalid-credential") || message.includes("wrong-password")
-            ? "Senha ou usuário incorretos."
-            : "Falha na autenticação: " + message
-        );
+        for (const testEmail of candidates) {
+          try {
+            await signInWithEmailAndPassword(auth, testEmail, password);
+            loggedIn = true;
+            break;
+          } catch (retryErr) {
+            lastError = retryErr;
+          }
+        }
+      } catch (bootErr) {
+        console.warn("Bootstrap call error:", bootErr);
       }
-    } finally {
-      setIsLoggingIn(false);
     }
+
+    // 3. Exibir feedback detalhado caso não autentique
+    if (!loggedIn && lastError) {
+      const msg = lastError instanceof Error ? lastError.message : String(lastError);
+      if (msg.includes("operation-not-allowed")) {
+        setAuthError(
+          "O login por E-mail/Senha precisa ser ativado no Firebase Console (Authentication > Sign-in method)."
+        );
+      } else if (
+        msg.includes("invalid-credential") ||
+        msg.includes("wrong-password") ||
+        msg.includes("user-not-found")
+      ) {
+        setAuthError("Senha ou usuário incorretos. Verifique suas credenciais.");
+      } else if (msg.includes("too-many-requests")) {
+        setAuthError("Muitas tentativas consecutivas. Aguarde alguns instantes e tente novamente.");
+      } else {
+        setAuthError(`Falha na autenticação: ${msg}`);
+      }
+    }
+
+    setIsLoggingIn(false);
   };
 
   const handleLogout = async () => {
