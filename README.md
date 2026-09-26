@@ -12,40 +12,36 @@ campanha e canais oficiais de contato.
 ## Stack técnica
 
 - **[Next.js 16](https://nextjs.org/)** (App Router) + **React 19** + **TypeScript**
-- CSS puro em `app/globals.css` (sem framework de utilitários) — variáveis CSS
-  centralizam cores, tipografia, espaçamento e motion, facilitando manutenção
-- **`next/font`** para carregar as fontes do Google (Anton + Barlow Condensed + Barlow)
-  com auto-hospedagem e sem layout shift
-- **`next/image`** para a foto do candidato — otimização automática de formato
-  (WebP/AVIF) e tamanho responsivo, com import estático (o Next lê a
-  dimensão real do arquivo automaticamente)
-- Sem banco de dados, sem API routes, sem dependências externas de runtime —
-  o site é 100% estático (`next build` gera páginas pré-renderizadas)
+- **Firebase** (Client SDK + Admin SDK) para autenticação e banco de dados Firestore
+- **Painel Administrativo (`/admin`)**: login restrito com criação/edição de matérias e alteração de textos da Home
+- **Blog & Notícias (`/noticias`)**: listagem com cache ISR (60s) e botão interativo de curtida com coração
+- CSS puro em `app/globals.css` (sem framework de utilitários) — design system com tokens consistentes
+- **`next/font`** para fontes Google (Anton + Barlow Condensed + Barlow)
+- **`next/image`** com otimização automática para foto do candidato
 
 ## Estrutura do projeto
 
 ```
 ├── app/
+│   ├── admin/page.tsx    # Painel administrativo restrito (login e gestão)
+│   ├── api/              # Endpoints para bootstrap, posts, likes e home settings
+│   ├── login/page.tsx    # Redirecionamento amigável para /admin
+│   ├── noticias/         # Blog público com listagem e páginas detalhadas [slug]
 │   ├── layout.tsx        # Layout raiz: fontes, metadata, <html lang="pt-BR">
-│   ├── page.tsx          # Monta as seções da página na ordem final
-│   ├── globals.css       # Todo o design system do site (tokens + componentes)
+│   ├── page.tsx          # Página inicial (Home) com últimas notícias
+│   ├── globals.css       # Design system completo do site
 │   └── icon.svg          # Favicon
 ├── components/
-│   ├── content.ts        # Dados oficiais da campanha (CNPJ, coligação, redes e links)
-│   ├── Header.tsx         # Ribbon animado (com CNPJ) + menu fixo + menu mobile (client component)
-│   ├── Hero.tsx           # Seção principal com a foto recortada
-│   ├── About.tsx          # Seção "Sobre" + linha do tempo da trajetória
-│   ├── Proposals.tsx      # Grade de propostas de campanha
-│   ├── Coalition.tsx      # Seção da coligação "Pra Cima, Amazonas"
-│   ├── Social.tsx         # Cards de redes sociais
-│   ├── FinalCta.tsx       # Chamada final "Vote 70111"
-│   └── Footer.tsx         # Rodapé com card de destaque legal do CNPJ e botão de copiar
-├── public/
-│   └── images/
-│       └── joao-roberto-foto-cutout.png   # Foto oficial com fundo removido
-├── next.config.mjs
-├── eslint.config.mjs
-└── tsconfig.json
+│   ├── LikeButton.tsx    # Botão interativo de coração/reação
+│   ├── NewsSection.tsx   # Seção de últimas notícias na Home
+│   ├── Header.tsx        # Topbar com marquee e menu mobile
+│   ├── Hero.tsx          # Seção principal dinâmica
+│   └── Footer.tsx        # Rodapé com card de destaque do CNPJ
+├── lib/
+│   ├── firebase.ts       # Firebase Client SDK
+│   ├── firebase-admin.ts # Firebase Admin SDK (Server)
+│   ├── posts.ts          # Gerenciamento de posts e cache de 60s
+│   └── types.ts          # Tipos TypeScript
 ```
 
 ## Como rodar localmente

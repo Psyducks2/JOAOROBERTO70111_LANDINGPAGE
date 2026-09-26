@@ -2,6 +2,7 @@ import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import About from "@/components/About";
 import Proposals from "@/components/Proposals";
+import NewsSection from "@/components/NewsSection";
 import Coalition from "@/components/Coalition";
 import Social from "@/components/Social";
 import FinalCta from "@/components/FinalCta";
@@ -20,6 +21,7 @@ export default function Home() {
         <Hero />
         <About />
         <Proposals />
+        <NewsSection />
         <Coalition />
         <Social />
         <FinalCta />
@@ -29,3 +31,4 @@ export default function Home() {
     </>
   );
 }
+

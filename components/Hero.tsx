@@ -1,8 +1,15 @@
 import Image from "next/image";
 import { SOCIAL_LINKS } from "./content";
+import { getHomeContent } from "@/lib/posts";
 import candidatePhoto from "../public/images/joao-roberto-foto-cutout.png";
 
-export default function Hero() {
+export default async function Hero() {
+  const home = await getHomeContent();
+  const ledeText =
+    home?.heroSubtitle ||
+    "O vice-prefeito mais econômico do Amazonas agora candidato a Deputado Estadual. Uma trajetória de gestão austera em Lábrea e forte atuação no interior do Purus, agora a serviço de todo o Amazonas.";
+  const twibbonLink = home?.twibbonUrl || SOCIAL_LINKS.twibbon;
+
   return (
     <section className="hero" id="topo">
       <div className="container hero-grid">
@@ -14,11 +21,7 @@ export default function Hero() {
             Roberto
           </h1>
           <span className="hero-number">70111</span>
-          <p className="hero-lede">
-            O vice-prefeito mais econômico do Amazonas agora candidato a Deputado
-            Estadual. Uma trajetória de gestão austera em Lábrea e forte atuação
-            no interior do Purus, agora a serviço de todo o Amazonas.
-          </p>
+          <p className="hero-lede">{ledeText}</p>
           <div className="hero-ctas">
             <a
               className="btn btn--primary"
@@ -30,7 +33,7 @@ export default function Hero() {
             </a>
             <a
               className="btn btn--ghost btn--on-hero"
-              href={SOCIAL_LINKS.twibbon}
+              href={twibbonLink}
               target="_blank"
               rel="noopener noreferrer"
             >

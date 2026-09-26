@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import { SOCIAL_LINKS, CAMPAIGN_INFO } from "./content";
 
 const NAV_LINKS = [
-  { href: "#sobre", label: "Sobre" },
-  { href: "#propostas", label: "Propostas" },
-  { href: "#coligacao", label: "Coligação" },
-  { href: "#redes", label: "Contato" },
+  { href: "/#sobre", label: "Sobre" },
+  { href: "/#propostas", label: "Propostas" },
+  { href: "/noticias", label: "Notícias" },
+  { href: "/#coligacao", label: "Coligação" },
+  { href: "/#redes", label: "Contato" },
 ];
 
 const RIBBON_ITEMS = Array.from({ length: 8 });

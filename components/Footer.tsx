@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { SOCIAL_LINKS, CAMPAIGN_INFO } from "./content";
 
 export default function Footer() {
@@ -35,10 +36,11 @@ export default function Footer() {
               </span>
             </div>
             <nav className="footer-nav" aria-label="Navegação do rodapé">
-              <a href="#sobre">Sobre</a>
-              <a href="#propostas">Propostas</a>
-              <a href="#coligacao">Coligação</a>
-              <a href="#redes">Contato</a>
+              <Link href="/#sobre">Sobre</Link>
+              <Link href="/#propostas">Propostas</Link>
+              <Link href="/noticias">Notícias</Link>
+              <Link href="/#coligacao">Coligação</Link>
+              <Link href="/#redes">Contato</Link>
             </nav>
           </div>
           <div className="footer-social">
