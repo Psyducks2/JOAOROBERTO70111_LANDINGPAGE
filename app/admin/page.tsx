@@ -13,6 +13,7 @@ export default function AdminPage() {
   // Estados de Login
   const [emailOrUser, setEmailOrUser] = useState("joaoroberto70111");
   const [password, setPassword] = useState("joaoroberto70111");
+  const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
@@ -314,50 +315,164 @@ export default function AdminPage() {
   // TELA DE LOGIN (Se não estiver autenticado)
   if (!user) {
     return (
-      <div className="admin-login-wrapper">
-        <div className="admin-login-card">
-          <div className="admin-login-header">
-            <span className="brand-number">70111</span>
-            <h2>Acesso Administrativo</h2>
-            <p>Painel oficial de gerenciamento do Blog e da Home</p>
-          </div>
+      <div className="admin-login-page">
+        {/* Efeitos de iluminação dinâmica de fundo */}
+        <div className="login-ambient-glow login-ambient-glow--1" />
+        <div className="login-ambient-glow login-ambient-glow--2" />
+        <div className="login-ambient-glow login-ambient-glow--3" />
+        <div className="login-mesh-pattern" />
 
-          {authError && <div className="admin-alert admin-alert--error">{authError}</div>}
+        <div className="admin-login-container">
+          <div className="admin-login-card">
+            {/* Header com Insígnia e Marca */}
+            <div className="admin-login-header">
+              <div className="admin-emblem-badge">
+                <span className="brand-number">70111</span>
+                <span className="badge-shield-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  </svg>
+                </span>
+              </div>
 
-          <form onSubmit={handleLogin} className="admin-form">
-            <div className="form-group">
-              <label htmlFor="emailOrUser">Usuário ou E-mail</label>
-              <input
-                id="emailOrUser"
-                type="text"
-                value={emailOrUser}
-                onChange={(e) => setEmailOrUser(e.target.value)}
-                placeholder="joaoroberto70111 ou seu email"
-                required
-              />
+              <span className="admin-pill-tag">GESTÃO DE CONTEÚDO OFICIAL</span>
+              <h1 className="admin-login-title">Acesso Administrativo</h1>
+              <p className="admin-login-subtitle">
+                Painel oficial de gerenciamento do <strong>Blog</strong> e conteúdo de <strong>João Roberto</strong>
+              </p>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="password">Senha de Acesso</label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Digite a senha"
-                required
-              />
+            {/* Alerta de erro estilizado */}
+            {authError && (
+              <div className="admin-alert-banner">
+                <span className="alert-banner-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                </span>
+                <div className="alert-banner-text">
+                  <strong>Não foi possível entrar</strong>
+                  <p>{authError}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Formulário com inputs ricos */}
+            <form onSubmit={handleLogin} className="admin-login-form">
+              <div className="form-input-group">
+                <label htmlFor="emailOrUser" className="input-label">
+                  <span className="label-icon">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                  </span>
+                  Usuário ou E-mail
+                </label>
+                <div className="input-field-wrapper">
+                  <input
+                    id="emailOrUser"
+                    type="text"
+                    value={emailOrUser}
+                    onChange={(e) => setEmailOrUser(e.target.value)}
+                    placeholder="joaoroberto70111 ou seu email"
+                    required
+                    autoComplete="username"
+                    className="styled-input"
+                  />
+                </div>
+              </div>
+
+              <div className="form-input-group">
+                <div className="input-label-row">
+                  <label htmlFor="password" className="input-label">
+                    <span className="label-icon">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                      </svg>
+                    </span>
+                    Senha de Acesso
+                  </label>
+                  <button
+                    type="button"
+                    className="toggle-password-btn"
+                    onClick={() => setShowPassword(!showPassword)}
+                    tabIndex={-1}
+                  >
+                    {showPassword ? "Ocultar" : "Mostrar"}
+                  </button>
+                </div>
+
+                <div className="input-field-wrapper">
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Digite sua senha"
+                    required
+                    autoComplete="current-password"
+                    className="styled-input styled-input--has-toggle"
+                  />
+                  <button
+                    type="button"
+                    className="password-eye-icon"
+                    onClick={() => setShowPassword(!showPassword)}
+                    title={showPassword ? "Ocultar senha" : "Exibir senha"}
+                    aria-label={showPassword ? "Ocultar senha" : "Exibir senha"}
+                  >
+                    {showPassword ? (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                        <line x1="1" y1="1" x2="23" y2="23" />
+                      </svg>
+                    ) : (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="btn-login-submit"
+                disabled={isLoggingIn}
+              >
+                {isLoggingIn ? (
+                  <>
+                    <span className="btn-spinner" />
+                    <span>Autenticando com Firebase...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Entrar no Painel</span>
+                    <span className="btn-arrow-icon">→</span>
+                  </>
+                )}
+              </button>
+            </form>
+
+            {/* Rodapé com indicadores de segurança e link de retorno */}
+            <div className="admin-login-footer">
+              <div className="login-security-tag">
+                <span className="security-status-dot" />
+                <span>Conexão Segura Criptografada SSL · Firebase Auth 256-bit</span>
+              </div>
+
+              <Link href="/" className="login-back-button">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="19" y1="12" x2="5" y2="12" />
+                  <polyline points="12 19 5 12 12 5" />
+                </svg>
+                <span>Voltar para o site oficial de João Roberto</span>
+              </Link>
             </div>
-
-            <button type="submit" className="btn btn--primary btn--full" disabled={isLoggingIn}>
-              {isLoggingIn ? "Verificando credenciais..." : "Entrar no Painel"}
-            </button>
-          </form>
-
-          <div className="admin-login-footer">
-            <Link href="/" className="back-link">
-              ← Voltar para o site público
-            </Link>
           </div>
         </div>
       </div>
