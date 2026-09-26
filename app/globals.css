@@ -385,6 +385,8 @@ h2.title {
   inset: var(--header-h) 0 0 0;
   z-index: 90;
   background: var(--navy);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   transform: translateY(-8px);
   opacity: 0;
   pointer-events: none;
@@ -406,7 +408,7 @@ h2.title {
 }
 
 .mobile-menu .od-stack {
-  padding: 28px 24px;
+  padding: 24px 20px 48px;
 }
 
 .mobile-menu a {
@@ -417,6 +419,114 @@ h2.title {
   padding: 14px 4px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.14);
   display: block;
+}
+
+/* Bloco de CNPJ e dados legais no menu mobile */
+.mobile-menu-cnpj {
+  margin-top: 28px;
+  background: rgba(8, 31, 68, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-left: 4px solid var(--orange);
+  border-radius: var(--radius-sm);
+  padding: 16px 18px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+}
+
+.mobile-menu-cnpj-badge {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.mobile-menu-cnpj-badge .badge-tag {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: var(--blue);
+  color: var(--white);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.mobile-menu-cnpj-badge .badge-status {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  background: rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.mobile-menu-cnpj-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mobile-menu-cnpj-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mobile-menu-cnpj-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--orange);
+}
+
+.mobile-menu-cnpj-number {
+  font-family: var(--font-heading);
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--white);
+}
+
+.mobile-menu-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--navy-deep);
+  background: var(--orange);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all var(--dur-s) var(--ease-out);
+  white-space: nowrap;
+}
+
+.mobile-menu-copy-btn:hover {
+  background: #ffaa5b;
+}
+
+.mobile-menu-copy-btn.is-copied {
+  background: #22c55e;
+  color: var(--white);
+}
+
+.mobile-menu-cnpj-desc {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 12px;
+  line-height: 1.55;
+  color: #a4b3cb;
+}
+
+.mobile-menu-cnpj-desc strong {
+  color: var(--white);
 }
 
 body.menu-open {

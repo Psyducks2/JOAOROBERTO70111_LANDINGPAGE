@@ -14,6 +14,24 @@ const RIBBON_ITEMS = Array.from({ length: 8 });
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyCnpj = async () => {
+    try {
+      await navigator.clipboard.writeText(CAMPAIGN_INFO.cnpj);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = CAMPAIGN_INFO.cnpj;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   useEffect(() => {
     document.body.classList.toggle("menu-open", isMenuOpen);
@@ -119,6 +137,49 @@ export default function Header() {
           >
             Apoiar a campanha →
           </a>
+
+          <div className="mobile-menu-cnpj" aria-label="Identificação do candidato e CNPJ">
+            <div className="mobile-menu-cnpj-badge">
+              <span className="badge-tag">DADOS DA CANDIDATURA</span>
+              <span className="badge-status">ELEIÇÕES {CAMPAIGN_INFO.electionYear}</span>
+            </div>
+
+            <div className="mobile-menu-cnpj-content">
+              <div className="mobile-menu-cnpj-info">
+                <span className="mobile-menu-cnpj-label">CNPJ DA CAMPANHA</span>
+                <span className="mobile-menu-cnpj-number">{CAMPAIGN_INFO.cnpj}</span>
+              </div>
+              <button
+                type="button"
+                onClick={handleCopyCnpj}
+                className={`mobile-menu-copy-btn ${copied ? "is-copied" : ""}`}
+                aria-label={copied ? "CNPJ copiado com sucesso" : "Copiar CNPJ da campanha"}
+              >
+                {copied ? (
+                  <>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    <span>Copiado!</span>
+                  </>
+                ) : (
+                  <>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                    <span>Copiar</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            <p className="mobile-menu-cnpj-desc">
+              <strong>{CAMPAIGN_INFO.candidateName.toUpperCase()} ({CAMPAIGN_INFO.number})</strong> — {CAMPAIGN_INFO.office}
+              <br />
+              Coligação &ldquo;{CAMPAIGN_INFO.coalitionName}&rdquo;
+            </p>
+          </div>
         </div>
       </nav>
     </>
