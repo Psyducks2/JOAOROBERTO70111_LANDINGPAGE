@@ -1328,6 +1328,8 @@ body.menu-open {
     justify-content: center;
     padding: 10px 14px;
   }
+}
+
 /* ==========================================================================
    Blog & Notícias
    ========================================================================== */
@@ -2221,34 +2223,46 @@ body.menu-open {
 
 .admin-dashboard {
   min-height: 100vh;
-  background: #f1f5f9;
+  background: #f8fafc;
   padding-bottom: 64px;
 }
 
 .admin-topbar {
-  background: var(--navy-deep);
+  background: #081f44;
   color: var(--white);
-  padding: 16px 28px;
+  padding: 16px 32px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
 .admin-topbar-left {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
+}
+
+.admin-topbar-left .brand-number {
+  font-family: var(--font-display);
+  font-size: 28px;
+  color: var(--orange);
+  letter-spacing: 0.5px;
 }
 
 .admin-topbar-left h1 {
-  font-size: 18px;
+  font-family: var(--font-heading);
+  font-size: 19px;
+  font-weight: 800;
   color: var(--white);
   margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .admin-user-badge {
-  font-size: 11px;
+  font-size: 12px;
   color: #94a3b8;
   display: block;
 }
@@ -2259,23 +2273,53 @@ body.menu-open {
   gap: 10px;
 }
 
+.btn--secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--white);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all var(--dur-s);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.btn--secondary:hover {
+  background: rgba(255, 255, 255, 0.22);
+  color: var(--white);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn--sm {
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 8px;
+}
+
 .btn--logout {
   background: rgba(239, 68, 68, 0.15);
   color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  padding: 6px 14px;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  padding: 7px 14px;
   border-radius: 8px;
   font-weight: 700;
   font-size: 13px;
+  cursor: pointer;
+  transition: all var(--dur-s);
 }
 
 .btn--logout:hover {
   background: #dc2626;
   color: var(--white);
+  border-color: #dc2626;
+  transform: translateY(-1px);
 }
 
 .admin-main {
-  margin-top: 32px;
+  max-width: 1140px;
+  margin: 32px auto 0;
+  padding: 0 24px;
 }
 
 .admin-tabs {
