@@ -730,13 +730,13 @@ export default function AdminPage() {
         </div>
 
         <div className="admin-topbar-actions">
-          <Link href="/blog" target="_blank" rel="noopener noreferrer" className="btn btn--secondary btn--sm">
+          <Link href="/blog" target="_blank" rel="noopener noreferrer" className="btn-topbar-link">
             Ver Blog ↗
           </Link>
-          <Link href="/" target="_blank" rel="noopener noreferrer" className="btn btn--secondary btn--sm">
+          <Link href="/" target="_blank" rel="noopener noreferrer" className="btn-topbar-link">
             Ver Site ↗
           </Link>
-          <button type="button" onClick={handleLogout} className="btn btn--logout btn--sm">
+          <button type="button" onClick={handleLogout} className="btn-topbar-logout">
             Sair
           </button>
         </div>
