@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import { getPublishedPosts } from "@/lib/posts";
 import Link from "next/link";
 import { Metadata } from "next";
+import { IconBookOpen, IconHeart, IconExternalLink } from "@/components/Icons";
 
 export const metadata: Metadata = {
   title: "Blog Oficial · João Roberto 70111",
@@ -33,7 +34,9 @@ export default async function BlogPage() {
         <div className="container blog-content-section">
           {posts.length === 0 ? (
             <div className="blog-empty-card">
-              <div className="blog-empty-icon">📝</div>
+              <div className="blog-empty-icon">
+                <IconBookOpen size={48} style={{ color: "#0059b2" }} />
+              </div>
               <h2>Nenhuma postagem publicada ainda</h2>
               <p>
                 O blog oficial do candidato está no ar! Fique atento às próximas atualizações e
@@ -45,8 +48,10 @@ export default async function BlogPage() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn btn--primary"
+                  style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
                 >
-                  Seguir no Instagram ↗
+                  <span>Seguir no Instagram</span>
+                  <IconExternalLink size={14} />
                 </a>
                 <Link href="/" className="btn btn--secondary">
                   Voltar para a Página Inicial
@@ -74,8 +79,9 @@ export default async function BlogPage() {
                       <div className="blog-card-meta">
                         <span className="badge-tag">{post.category || "Artigo"}</span>
                         {post.publishedAt && <time dateTime={post.publishedAt}>{post.publishedAt}</time>}
-                        <span className="blog-card-likes" title="Apoios recebidos">
-                          ❤️ {post.likes || 0}
+                        <span className="blog-card-likes" title="Apoios recebidos" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                          <IconHeart size={13} fill="#ef4444" style={{ color: "#ef4444" }} />
+                          <span>{post.likes || 0}</span>
                         </span>
                       </div>
 

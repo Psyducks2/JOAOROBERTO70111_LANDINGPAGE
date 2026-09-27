@@ -3644,4 +3644,18 @@ body.menu-open {
   color: #1e3a8a;
 }
 
+@keyframes svg-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.svg-spin {
+  animation: svg-spin 1s linear infinite;
+}
+
+
 

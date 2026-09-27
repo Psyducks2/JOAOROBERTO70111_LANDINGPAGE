@@ -1,5 +1,6 @@
 import { getPublishedPosts } from "@/lib/posts";
 import Link from "next/link";
+import { IconHeart } from "@/components/Icons";
 
 export default async function BlogSection() {
   const allPosts = await getPublishedPosts();
@@ -37,8 +38,9 @@ export default async function BlogSection() {
                   <div className="blog-card-meta">
                     <span className="badge-tag">{post.category || "Artigo"}</span>
                     {post.publishedAt && <time dateTime={post.publishedAt}>{post.publishedAt}</time>}
-                    <span className="blog-card-likes" title="Apoios recebidos">
-                      ❤️ {post.likes || 0}
+                    <span className="blog-card-likes" title="Apoios recebidos" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                      <IconHeart size={13} fill="#ef4444" style={{ color: "#ef4444" }} />
+                      <span>{post.likes || 0}</span>
                     </span>
                   </div>
 

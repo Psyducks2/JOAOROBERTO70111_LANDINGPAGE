@@ -6,6 +6,40 @@ import { signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from "f
 import { auth } from "@/lib/firebase";
 import { BlogPost, HomeContent, TimelineItem, ProposalItem } from "@/lib/types";
 import { DEFAULT_HOME_CONTENT } from "@/lib/default-content";
+import {
+  IconEye,
+  IconEdit,
+  IconTrash,
+  IconSave,
+  IconRefresh,
+  IconUpload,
+  IconZap,
+  IconPlus,
+  IconStar,
+  IconHeart,
+  IconLink,
+  IconExternalLink,
+  IconLogout,
+  IconFileText,
+  IconClock,
+  IconTag,
+  IconQuote,
+  IconList,
+  IconListOrdered,
+  IconMinus,
+  IconType,
+  IconInfo,
+  IconUser,
+  IconTarget,
+  IconUsers,
+  IconShare,
+  IconMegaphone,
+  IconShield,
+  IconCheckCircle,
+  IconImage,
+  IconBookOpen,
+  IconSpinner,
+} from "@/components/Icons";
 
 const CATEGORY_SUGGESTIONS = [
   "Mandato",
@@ -731,13 +765,16 @@ export default function AdminPage() {
 
         <div className="admin-topbar-actions">
           <Link href="/blog" target="_blank" rel="noopener noreferrer" className="btn-topbar-link">
-            Ver Blog ↗
+            <span>Ver Blog</span>
+            <IconExternalLink size={13} />
           </Link>
           <Link href="/" target="_blank" rel="noopener noreferrer" className="btn-topbar-link">
-            Ver Site ↗
+            <span>Ver Site</span>
+            <IconExternalLink size={13} />
           </Link>
           <button type="button" onClick={handleLogout} className="btn-topbar-logout">
-            Sair
+            <IconLogout size={14} />
+            <span>Sair</span>
           </button>
         </div>
       </header>
@@ -792,8 +829,10 @@ export default function AdminPage() {
                     });
                     setIsEditingPost(true);
                   }}
+                  style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
                 >
-                  + Nova Postagem no Blog
+                  <IconPlus size={16} />
+                  <span>Nova Postagem no Blog</span>
                 </button>
               )}
             </div>
@@ -803,8 +842,9 @@ export default function AdminPage() {
               <form onSubmit={handleSavePost} className="admin-card admin-post-form">
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
                   <div>
-                    <h3 style={{ margin: 0, fontSize: "1.4rem", fontWeight: 800, color: "#0f172a" }}>
-                      {currentPost.id ? "✏️ Editar Artigo do Blog" : "📝 Criar Nova Postagem no Blog"}
+                    <h3 style={{ margin: 0, fontSize: "1.4rem", fontWeight: 800, color: "#0f172a", display: "flex", alignItems: "center", gap: 8 }}>
+                      {currentPost.id ? <IconEdit size={20} style={{ color: "#0059b2" }} /> : <IconPlus size={20} style={{ color: "#0059b2" }} />}
+                      <span>{currentPost.id ? "Editar Artigo do Blog" : "Criar Nova Postagem no Blog"}</span>
                     </h3>
                     <p style={{ margin: "4px 0 0", color: "#64748b", fontSize: "0.92rem" }}>
                       Escreva, formate com as ferramentas rápidas e pré-visualize exatamente como os eleitores lerão.
@@ -816,14 +856,16 @@ export default function AdminPage() {
                       className={`editor-mode-btn ${postViewMode === "edit" ? "active" : ""}`}
                       onClick={() => setPostViewMode("edit")}
                     >
-                      ✏️ Editor de Texto
+                      <IconEdit size={14} />
+                      <span>Editor de Texto</span>
                     </button>
                     <button
                       type="button"
                       className={`editor-mode-btn ${postViewMode === "preview" ? "active" : ""}`}
                       onClick={() => setPostViewMode("preview")}
                     >
-                      👁️ Pré-visualização ao Vivo
+                      <IconEye size={14} />
+                      <span>Pré-visualização</span>
                     </button>
                   </div>
                 </div>
@@ -853,8 +895,10 @@ export default function AdminPage() {
                         className="btn-regen-slug"
                         onClick={handleRegenSlug}
                         title="Recriar o link a partir do título digitado"
+                        style={{ display: "inline-flex", alignItems: "center", gap: 5 }}
                       >
-                        🔄 Recriar do Título
+                        <IconRefresh size={12} />
+                        <span>Recriar do Título</span>
                       </button>
                     </div>
                     <input
@@ -863,8 +907,9 @@ export default function AdminPage() {
                       onChange={(e) => setCurrentPost({ ...currentPost, slug: e.target.value })}
                       placeholder="gerado automaticamente a partir do título"
                     />
-                    <span style={{ fontSize: "0.8rem", color: "#64748b", display: "block", marginTop: 4 }}>
-                      🔗 Link público: /noticias/{currentPost.slug || "url-do-artigo"}
+                    <span style={{ fontSize: "0.8rem", color: "#64748b", display: "inline-flex", alignItems: "center", gap: 4, marginTop: 4 }}>
+                      <IconLink size={12} />
+                      <span>Link público: /noticias/{currentPost.slug || "url-do-artigo"}</span>
                     </span>
                   </div>
 
@@ -909,12 +954,14 @@ export default function AdminPage() {
                         onChange={handleFileUpload}
                         style={{ display: "none" }}
                       />
-                      <label htmlFor="image-file-input" className="btn btn-site-preview" style={{ cursor: "pointer" }}>
-                        📁 Subir Foto (Firebase Storage)
+                      <label htmlFor="image-file-input" className="btn btn-site-preview" style={{ cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                        <IconUpload size={15} />
+                        <span>Subir Foto (Firebase Storage)</span>
                       </label>
                       {isUploadingImage && (
-                        <span className="upload-status" style={{ color: "#0059b2", fontWeight: 600, fontSize: "0.9rem" }}>
-                          ⏳ Enviando para o Firebase Storage...
+                        <span className="upload-status" style={{ color: "#0059b2", fontWeight: 600, fontSize: "0.9rem", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                          <IconSpinner size={15} />
+                          <span>Enviando para o Firebase Storage...</span>
                         </span>
                       )}
                       {uploadError && <span className="upload-error" style={{ color: "#dc2626", fontWeight: 600, fontSize: "0.9rem" }}>{uploadError}</span>}
@@ -937,9 +984,10 @@ export default function AdminPage() {
                           type="button"
                           className="btn-remove-image"
                           onClick={() => setCurrentPost((prev) => ({ ...prev, coverImage: "" }))}
-                          style={{ display: "block", marginTop: 6, color: "#dc2626", background: "none", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}
+                          style={{ display: "inline-flex", alignItems: "center", gap: 4, marginTop: 6, color: "#dc2626", background: "none", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}
                         >
-                          ✕ Remover Foto
+                          <IconTrash size={13} />
+                          <span>Remover Foto</span>
                         </button>
                       </div>
                     )}
@@ -955,8 +1003,10 @@ export default function AdminPage() {
                         className="btn-regen-slug"
                         onClick={handleAutoSummary}
                         title="Extrair automaticamente o primeiro parágrafo do artigo como resumo"
+                        style={{ display: "inline-flex", alignItems: "center", gap: 5 }}
                       >
-                        ⚡ Preencher do 1º Parágrafo
+                        <IconZap size={13} />
+                        <span>Preencher do 1º Parágrafo</span>
                       </button>
                     </div>
                     <textarea
@@ -1020,7 +1070,8 @@ export default function AdminPage() {
                           onClick={() => insertMarkdown("\n> ", "\n", "Citação ou fala do candidato")}
                           title="Citação em Destaque"
                         >
-                          ❝ Citação
+                          <IconQuote size={13} />
+                          <span>Citação</span>
                         </button>
                         <button
                           type="button"
@@ -1028,7 +1079,8 @@ export default function AdminPage() {
                           onClick={() => insertMarkdown("\n- ", "\n", "Item da lista")}
                           title="Lista com Marcadores"
                         >
-                          • Lista
+                          <IconList size={13} />
+                          <span>Lista</span>
                         </button>
                         <button
                           type="button"
@@ -1036,7 +1088,8 @@ export default function AdminPage() {
                           onClick={() => insertMarkdown("\n1. ", "\n", "Item numerado")}
                           title="Lista Numerada"
                         >
-                          1. Numerada
+                          <IconListOrdered size={13} />
+                          <span>Numerada</span>
                         </button>
                         <div className="blog-tool-separator" />
                         <button
@@ -1045,7 +1098,8 @@ export default function AdminPage() {
                           onClick={() => insertMarkdown("[", "](https://link.com)", "Texto do Link")}
                           title="Inserir Link"
                         >
-                          🔗 Link
+                          <IconLink size={13} />
+                          <span>Link</span>
                         </button>
                         <button
                           type="button"
@@ -1053,7 +1107,8 @@ export default function AdminPage() {
                           onClick={() => insertMarkdown("\n\n---\n\n", "", "")}
                           title="Linha Divisória"
                         >
-                          — Linha
+                          <IconMinus size={13} />
+                          <span>Divisor</span>
                         </button>
                       </div>
 
@@ -1069,17 +1124,21 @@ export default function AdminPage() {
 
                       {/* Barra de Métricas em Tempo Real */}
                       <div className="blog-stats-bar">
-                        <span>
-                          📝 <strong>{(currentPost.content || "").trim().split(/\s+/).filter(Boolean).length}</strong> palavras
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                          <IconFileText size={14} style={{ color: "#0059b2" }} />
+                          <span><strong>{(currentPost.content || "").trim().split(/\s+/).filter(Boolean).length}</strong> palavras</span>
                         </span>
-                        <span>
-                          🔤 <strong>{(currentPost.content || "").length}</strong> caracteres
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                          <IconType size={14} style={{ color: "#0059b2" }} />
+                          <span><strong>{(currentPost.content || "").length}</strong> caracteres</span>
                         </span>
-                        <span>
-                          ⏱️ ~<strong>{Math.max(1, Math.ceil(((currentPost.content || "").trim().split(/\s+/).filter(Boolean).length) / 200))}</strong> min de leitura
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                          <IconClock size={14} style={{ color: "#0059b2" }} />
+                          <span>~<strong>{Math.max(1, Math.ceil(((currentPost.content || "").trim().split(/\s+/).filter(Boolean).length) / 200))}</strong> min de leitura</span>
                         </span>
-                        <span>
-                          💡 Dica: Destaque pontos-chave com o botão <strong>B</strong> para enriquecer a leitura.
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                          <IconInfo size={14} style={{ color: "#64748b" }} />
+                          <span>Destaque pontos-chave com o botão <strong>B</strong> para enriquecer a leitura.</span>
                         </span>
                       </div>
                     </div>
@@ -1096,11 +1155,22 @@ export default function AdminPage() {
 
                       <div className="blog-live-preview">
                         <div className="preview-badge-header">
-                          <span style={{ fontWeight: 700, color: "#0059b2", textTransform: "uppercase", fontSize: "0.85rem", letterSpacing: "0.05em" }}>
-                            🏷️ {currentPost.category || "Geral"}
+                          <span style={{ fontWeight: 700, color: "#0059b2", textTransform: "uppercase", fontSize: "0.85rem", letterSpacing: "0.05em", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                            <IconTag size={13} />
+                            <span>{currentPost.category || "Geral"}</span>
                           </span>
-                          <span className="preview-status-pill">
-                            {currentPost.status === "published" ? "✓ Publicado no Blog" : "✎ Rascunho"}
+                          <span className="preview-status-pill" style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                            {currentPost.status === "published" ? (
+                              <>
+                                <IconCheckCircle size={13} />
+                                <span>Publicado no Blog</span>
+                              </>
+                            ) : (
+                              <>
+                                <IconEdit size={13} />
+                                <span>Rascunho</span>
+                              </>
+                            )}
                           </span>
                         </div>
 
@@ -1142,29 +1212,30 @@ export default function AdminPage() {
                       }
                       style={{ fontWeight: 600 }}
                     >
-                      <option value="published">🟢 Publicado no Blog (Visível a todos)</option>
-                      <option value="draft">🟡 Rascunho (Privado / Oculto)</option>
+                      <option value="published">Publicado no Blog (Visível a todos)</option>
+                      <option value="draft">Rascunho (Privado / Oculto)</option>
                     </select>
                   </div>
 
                   <div className="form-group form-group--checkbox" style={{ display: "flex", alignItems: "center" }}>
-                    <label style={{ cursor: "pointer", fontWeight: 600, color: "#0f172a" }}>
+                    <label style={{ cursor: "pointer", fontWeight: 600, color: "#0f172a", display: "inline-flex", alignItems: "center", gap: 8 }}>
                       <input
                         type="checkbox"
                         checked={Boolean(currentPost.featured)}
                         onChange={(e) =>
                           setCurrentPost({ ...currentPost, featured: e.target.checked })
                         }
-                        style={{ marginRight: 8 }}
                       />
-                      ⭐ Destacar no topo do Blog
+                      <IconStar size={16} style={{ color: "#f59e0b" }} />
+                      <span>Destacar no topo do Blog</span>
                     </label>
                   </div>
                 </div>
 
                 <div className="form-actions" style={{ marginTop: 24, display: "flex", gap: 12 }}>
-                  <button type="submit" className="btn btn-save-home" disabled={isSaving}>
-                    {isSaving ? "Gravando Artigo..." : "💾 Salvar Artigo"}
+                  <button type="submit" className="btn btn-save-home" disabled={isSaving} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                    <IconSave size={15} />
+                    <span>{isSaving ? "Gravando Artigo..." : "Salvar Artigo"}</span>
                   </button>
                   <button
                     type="button"
@@ -1180,7 +1251,9 @@ export default function AdminPage() {
               <div className="admin-posts-list">
                 {posts.length === 0 ? (
                   <div className="admin-empty-state">
-                    <div style={{ fontSize: 32, marginBottom: 12 }}>📝</div>
+                    <div style={{ marginBottom: 12, display: "flex", justifyContent: "center" }}>
+                      <IconBookOpen size={48} style={{ color: "#94a3b8" }} />
+                    </div>
                     <h3>Nenhuma postagem cadastrada</h3>
                     <p>O blog está limpo e pronto! Clique no botão acima para criar o primeiro artigo do candidato.</p>
                   </div>
@@ -1197,13 +1270,24 @@ export default function AdminPage() {
                           >
                             {post.status === "published" ? "Publicado" : "Rascunho"}
                           </span>
-                          <span className="admin-post-likes">❤️ {post.likes || 0} curtidas</span>
+                          <span className="admin-post-likes" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                            <IconHeart size={13} fill="#ef4444" style={{ color: "#ef4444" }} />
+                            <span>{post.likes || 0} curtidas</span>
+                          </span>
                         </div>
                         <h3>{post.title}</h3>
                         <p>{post.summary || post.content.slice(0, 100) + "..."}</p>
-                        <span className="admin-post-date">
-                          {post.publishedAt ? `Data: ${post.publishedAt}` : ""}
-                          {post.coverImage ? " · 📷 Com foto" : " · 📄 Sem foto"}
+                        <span className="admin-post-date" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                          {post.publishedAt ? <span>Data: {post.publishedAt}</span> : null}
+                          {post.coverImage ? (
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
+                              · <IconImage size={13} /> Com foto
+                            </span>
+                          ) : (
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
+                              · <IconFileText size={13} /> Sem foto
+                            </span>
+                          )}
                         </span>
                       </div>
 
@@ -1215,7 +1299,7 @@ export default function AdminPage() {
                           className="btn-icon"
                           title="Visualizar no blog"
                         >
-                          👁️
+                          <IconEye size={16} />
                         </Link>
                         <button
                           type="button"
@@ -1226,7 +1310,7 @@ export default function AdminPage() {
                             setIsEditingPost(true);
                           }}
                         >
-                          ✏️
+                          <IconEdit size={16} />
                         </button>
                         <button
                           type="button"
@@ -1234,7 +1318,7 @@ export default function AdminPage() {
                           title="Excluir postagem"
                           onClick={() => handleDeletePost(post.id || post.slug, post.title)}
                         >
-                          🗑️
+                          <IconTrash size={16} />
                         </button>
                       </div>
                     </div>
@@ -1263,16 +1347,20 @@ export default function AdminPage() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn btn-site-preview"
+                  style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
                 >
-                  👁️ Ver Site ao Vivo
+                  <IconEye size={15} />
+                  <span>Ver Site ao Vivo</span>
                 </Link>
                 <button
                   type="button"
                   onClick={() => handleSaveHome()}
                   className="btn btn-save-home"
                   disabled={isSaving}
+                  style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
                 >
-                  {isSaving ? "Salvando..." : "💾 Salvar Alterações da Home"}
+                  <IconSave size={15} />
+                  <span>{isSaving ? "Salvando..." : "Salvar Alterações da Home"}</span>
                 </button>
               </div>
             </div>
@@ -1284,49 +1372,56 @@ export default function AdminPage() {
                 className={`admin-subtab ${homeSectionTab === "hero" ? "is-active" : ""}`}
                 onClick={() => setHomeSectionTab("hero")}
               >
-                🌟 Topo & Hero
+                <IconZap size={14} />
+                <span>Topo & Hero</span>
               </button>
               <button
                 type="button"
                 className={`admin-subtab ${homeSectionTab === "sobre" ? "is-active" : ""}`}
                 onClick={() => setHomeSectionTab("sobre")}
               >
-                👤 Sobre & Biografia
+                <IconUser size={14} />
+                <span>Sobre & Biografia</span>
               </button>
               <button
                 type="button"
                 className={`admin-subtab ${homeSectionTab === "propostas" ? "is-active" : ""}`}
                 onClick={() => setHomeSectionTab("propostas")}
               >
-                🎯 Propostas & Bandeiras ({homeContent.proposals?.length || 0})
+                <IconTarget size={14} />
+                <span>Propostas ({homeContent.proposals?.length || 0})</span>
               </button>
               <button
                 type="button"
                 className={`admin-subtab ${homeSectionTab === "coligacao" ? "is-active" : ""}`}
                 onClick={() => setHomeSectionTab("coligacao")}
               >
-                🤝 Coligação & Eleições
+                <IconUsers size={14} />
+                <span>Coligação & Eleições</span>
               </button>
               <button
                 type="button"
                 className={`admin-subtab ${homeSectionTab === "redes" ? "is-active" : ""}`}
                 onClick={() => setHomeSectionTab("redes")}
               >
-                📱 Redes Sociais & Links
+                <IconShare size={14} />
+                <span>Redes Sociais & Links</span>
               </button>
               <button
                 type="button"
                 className={`admin-subtab ${homeSectionTab === "final" ? "is-active" : ""}`}
                 onClick={() => setHomeSectionTab("final")}
               >
-                📢 Chamada Final
+                <IconMegaphone size={14} />
+                <span>Chamada Final</span>
               </button>
               <button
                 type="button"
                 className={`admin-subtab ${homeSectionTab === "legal" ? "is-active" : ""}`}
                 onClick={() => setHomeSectionTab("legal")}
               >
-                📄 Rodapé & CNPJ
+                <IconShield size={14} />
+                <span>Rodapé & CNPJ</span>
               </button>
             </div>
 
@@ -1597,8 +1692,10 @@ export default function AdminPage() {
                         type="button"
                         onClick={handleAddTimeline}
                         className="btn btn--secondary btn--sm"
+                        style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
                       >
-                        ➕ Adicionar Marco
+                        <IconPlus size={14} />
+                        <span>Adicionar Marco</span>
                       </button>
                     </div>
 
@@ -1613,7 +1710,7 @@ export default function AdminPage() {
                               className="btn-icon btn-icon--delete"
                               title="Remover este marco"
                             >
-                              🗑️
+                              <IconTrash size={16} />
                             </button>
                           </div>
                           <div className="form-grid">
@@ -1715,8 +1812,10 @@ export default function AdminPage() {
                         type="button"
                         onClick={handleAddProposal}
                         className="btn btn--secondary btn--sm"
+                        style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
                       >
-                        ➕ Adicionar Nova Bandeira
+                        <IconPlus size={14} />
+                        <span>Adicionar Nova Bandeira</span>
                       </button>
                     </div>
 
@@ -1729,7 +1828,7 @@ export default function AdminPage() {
                           <div className="admin-item-card-header">
                             <span className="badge-tag">Proposta #{index + 1}</span>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                              <label className="checkbox-featured-label">
+                              <label className="checkbox-featured-label" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                                 <input
                                   type="checkbox"
                                   checked={Boolean(prop.featured)}
@@ -1741,7 +1840,8 @@ export default function AdminPage() {
                                     )
                                   }
                                 />
-                                🌟 Proposta Principal (Destaque Dourado)
+                                <IconStar size={14} style={{ color: "#d97706" }} />
+                                <span>Proposta Principal (Destaque Dourado)</span>
                               </label>
                               <button
                                 type="button"
@@ -1749,7 +1849,7 @@ export default function AdminPage() {
                                 className="btn-icon btn-icon--delete"
                                 title="Remover proposta"
                               >
-                                🗑️
+                                <IconTrash size={16} />
                               </button>
                             </div>
                           </div>
@@ -2219,15 +2319,19 @@ export default function AdminPage() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn btn-site-preview"
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
                   >
-                    👁️ Ver Site ao Vivo
+                    <IconEye size={15} />
+                    <span>Ver Site ao Vivo</span>
                   </Link>
                   <button
                     type="submit"
                     className="btn btn-save-home"
                     disabled={isSaving}
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
                   >
-                    {isSaving ? "Gravando no Firestore..." : "💾 Salvar Todas as Alterações"}
+                    <IconSave size={15} />
+                    <span>{isSaving ? "Gravando no Firestore..." : "Salvar Todas as Alterações"}</span>
                   </button>
                 </div>
               </div>
