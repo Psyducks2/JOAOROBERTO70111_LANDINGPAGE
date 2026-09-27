@@ -1,11 +1,22 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { BlogPost, HomeContent, TimelineItem, ProposalItem } from "@/lib/types";
 import { DEFAULT_HOME_CONTENT } from "@/lib/default-content";
+
+const CATEGORY_SUGGESTIONS = [
+  "Mandato",
+  "Saúde",
+  "Agronegócio",
+  "Interior",
+  "Educação",
+  "Ações Sociais",
+  "Infraestrutura",
+  "Eleições 2026",
+];
 
 export default function AdminPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -28,6 +39,9 @@ export default function AdminPage() {
 
   // Estados do Formulário de Postagem
   const [isEditingPost, setIsEditingPost] = useState(false);
+  const [postViewMode, setPostViewMode] = useState<"edit" | "preview">("edit");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
   const [currentPost, setCurrentPost] = useState<Partial<BlogPost>>({
     title: "",
     slug: "",
@@ -46,6 +60,135 @@ export default function AdminPage() {
   // Estados de Upload para Firebase Storage
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [uploadError, setUploadError] = useState("");
+
+  // Gerador automático de Slug limpo e amigável
+  const generateSlug = (text: string) => {
+    return text
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^\w\s-]/g, "")
+      .trim()
+      .replace(/\s+/g, "-");
+  };
+
+  const handleTitleChange = (newTitle: string) => {
+    setCurrentPost((prev) => {
+      const prevAutoSlug = generateSlug(prev.title || "");
+      const shouldAutoSlug = !prev.id && (!prev.slug || prev.slug === prevAutoSlug);
+      return {
+        ...prev,
+        title: newTitle,
+        slug: shouldAutoSlug ? generateSlug(newTitle) : prev.slug,
+      };
+    });
+  };
+
+  const handleRegenSlug = () => {
+    if (currentPost.title) {
+      setCurrentPost((prev) => ({ ...prev, slug: generateSlug(prev.title || "") }));
+    }
+  };
+
+  const handleAutoSummary = () => {
+    if (!currentPost.content) return;
+    const plain = currentPost.content
+      .replace(/#+\s/g, "")
+      .replace(/\*\*|\*|__/g, "")
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+      .trim();
+    const sentence = plain.split("\n")[0] || plain;
+    const summary = sentence.length > 160 ? sentence.substring(0, 157) + "..." : sentence;
+    setCurrentPost((prev) => ({ ...prev, summary }));
+  };
+
+  const insertMarkdown = (prefix: string, suffix: string = "", defaultText: string = "") => {
+    if (!textareaRef.current) return;
+    const el = textareaRef.current;
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    const val = currentPost.content || "";
+    const selected = val.substring(start, end) || defaultText;
+    const replacement = `${prefix}${selected}${suffix}`;
+    const nextVal = val.substring(0, start) + replacement + val.substring(end);
+    setCurrentPost((prev) => ({ ...prev, content: nextVal }));
+    setTimeout(() => {
+      el.focus();
+      el.setSelectionRange(start + prefix.length, start + prefix.length + selected.length);
+    }, 10);
+  };
+
+  // Renderizador seguro de Markdown para a Pré-visualização do Post
+  const renderPreviewMarkdown = (text: string) => {
+    if (!text || text.trim() === "") {
+      return (
+        <p style={{ color: "#94a3b8", fontStyle: "italic", margin: "24px 0" }}>
+          O texto do artigo está vazio. Volte para a aba &quot;Editor&quot; e comece a escrever!
+        </p>
+      );
+    }
+    const blocks = text.split(/\n\s*\n/);
+    return blocks.map((block, idx) => {
+      const trimmed = block.trim();
+      if (!trimmed) return null;
+      if (trimmed.startsWith("### ")) {
+        return (
+          <h4 key={idx} style={{ fontSize: "1.25rem", fontWeight: 700, color: "#0f172a", marginTop: "1.25rem", marginBottom: "0.5rem" }}>
+            {trimmed.slice(4)}
+          </h4>
+        );
+      }
+      if (trimmed.startsWith("## ")) {
+        return (
+          <h3 key={idx} style={{ fontSize: "1.5rem", fontWeight: 800, color: "#0f172a", marginTop: "1.75rem", marginBottom: "0.75rem" }}>
+            {trimmed.slice(3)}
+          </h3>
+        );
+      }
+      if (trimmed.startsWith("# ")) {
+        return (
+          <h2 key={idx} style={{ fontSize: "1.85rem", fontWeight: 900, color: "#0059b2", marginTop: "2rem", marginBottom: "1rem" }}>
+            {trimmed.slice(2)}
+          </h2>
+        );
+      }
+      if (trimmed.startsWith("> ")) {
+        return (
+          <blockquote key={idx} style={{ borderLeft: "4px solid #0059b2", padding: "12px 18px", margin: "18px 0", color: "#1e3a8a", fontStyle: "italic", background: "#f0f7ff", borderRadius: "0 8px 8px 0" }}>
+            {trimmed.slice(2)}
+          </blockquote>
+        );
+      }
+      if (trimmed === "---" || trimmed === "***") {
+        return <hr key={idx} style={{ border: "none", borderTop: "1.5px solid #e2e8f0", margin: "2rem 0" }} />;
+      }
+      if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
+        const items = trimmed.split("\n").filter((l) => l.trim().startsWith("- ") || l.trim().startsWith("* "));
+        return (
+          <ul key={idx} style={{ paddingLeft: "1.75rem", margin: "1rem 0", color: "#334155", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+            {items.map((item, i) => (
+              <li key={i}>{item.replace(/^[-*]\s+/, "")}</li>
+            ))}
+          </ul>
+        );
+      }
+      if (/^\d+\.\s/.test(trimmed)) {
+        const items = trimmed.split("\n").filter((l) => /^\d+\.\s/.test(l.trim()));
+        return (
+          <ol key={idx} style={{ paddingLeft: "1.75rem", margin: "1rem 0", color: "#334155", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+            {items.map((item, i) => (
+              <li key={i}>{item.replace(/^\d+\.\s+/, "")}</li>
+            ))}
+          </ol>
+        );
+      }
+      return (
+        <p key={idx} style={{ marginBottom: "1.25rem", lineHeight: "1.8", color: "#334155", fontSize: "1.05rem", whiteSpace: "pre-line" }}>
+          {trimmed}
+        </p>
+      );
+    });
+  };
 
   // Carrega dados do painel
   const loadData = useCallback(async (currentUser: User) => {
@@ -655,51 +798,110 @@ export default function AdminPage() {
               )}
             </div>
 
-            {/* FORMULÁRIO DE CRIAÇÃO / EDIÇÃO DE POST */}
+            {/* FORMULÁRIO DE CRIAÇÃO / EDIÇÃO DE POST COM FERRAMENTAS AVANÇADAS */}
             {isEditingPost ? (
               <form onSubmit={handleSavePost} className="admin-card admin-post-form">
-                <h3>{currentPost.id ? "Editar Postagem" : "Criar Nova Postagem no Blog"}</h3>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: "1.4rem", fontWeight: 800, color: "#0f172a" }}>
+                      {currentPost.id ? "✏️ Editar Artigo do Blog" : "📝 Criar Nova Postagem no Blog"}
+                    </h3>
+                    <p style={{ margin: "4px 0 0", color: "#64748b", fontSize: "0.92rem" }}>
+                      Escreva, formate com as ferramentas rápidas e pré-visualize exatamente como os eleitores lerão.
+                    </p>
+                  </div>
+                  <div className="editor-mode-toggle">
+                    <button
+                      type="button"
+                      className={`editor-mode-btn ${postViewMode === "edit" ? "active" : ""}`}
+                      onClick={() => setPostViewMode("edit")}
+                    >
+                      ✏️ Editor de Texto
+                    </button>
+                    <button
+                      type="button"
+                      className={`editor-mode-btn ${postViewMode === "preview" ? "active" : ""}`}
+                      onClick={() => setPostViewMode("preview")}
+                    >
+                      👁️ Pré-visualização ao Vivo
+                    </button>
+                  </div>
+                </div>
 
                 <div className="form-grid">
                   <div className="form-group form-group--span2">
-                    <label>Título do Artigo / Post *</label>
+                    <label style={{ fontWeight: 700, color: "#0f172a", fontSize: "0.95rem" }}>
+                      Título do Artigo / Matéria *
+                    </label>
                     <input
                       type="text"
                       value={currentPost.title || ""}
-                      onChange={(e) => setCurrentPost({ ...currentPost, title: e.target.value })}
-                      placeholder="Ex: João Roberto defende investimentos em infraestrutura no interior..."
+                      onChange={(e) => handleTitleChange(e.target.value)}
+                      placeholder="Ex: João Roberto defende investimentos prioritários em infraestrutura e saúde no interior..."
                       required
+                      style={{ fontSize: "1.05rem", fontWeight: 600 }}
                     />
                   </div>
 
                   <div className="form-group">
-                    <label>Slug (URL Amigável)</label>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                      <label style={{ fontWeight: 700, color: "#0f172a", fontSize: "0.95rem" }}>
+                        Slug (URL Amigável)
+                      </label>
+                      <button
+                        type="button"
+                        className="btn-regen-slug"
+                        onClick={handleRegenSlug}
+                        title="Recriar o link a partir do título digitado"
+                      >
+                        🔄 Recriar do Título
+                      </button>
+                    </div>
                     <input
                       type="text"
                       value={currentPost.slug || ""}
                       onChange={(e) => setCurrentPost({ ...currentPost, slug: e.target.value })}
                       placeholder="gerado automaticamente a partir do título"
                     />
+                    <span style={{ fontSize: "0.8rem", color: "#64748b", display: "block", marginTop: 4 }}>
+                      🔗 Link público: /noticias/{currentPost.slug || "url-do-artigo"}
+                    </span>
                   </div>
 
                   <div className="form-group">
-                    <label>Categoria / Tag</label>
+                    <label style={{ fontWeight: 700, color: "#0f172a", fontSize: "0.95rem" }}>
+                      Categoria / Tema Principal
+                    </label>
                     <input
                       type="text"
                       value={currentPost.category || ""}
                       onChange={(e) => setCurrentPost({ ...currentPost, category: e.target.value })}
-                      placeholder="Ex: Saúde, Interior, Emprego, Campanha"
+                      placeholder="Digite ou escolha um dos temas sugeridos abaixo"
                     />
+                    <div className="category-chips-list">
+                      {CATEGORY_SUGGESTIONS.map((cat) => (
+                        <button
+                          key={cat}
+                          type="button"
+                          className={`category-chip-btn ${currentPost.category === cat ? "active" : ""}`}
+                          onClick={() => setCurrentPost({ ...currentPost, category: cat })}
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
                   {/* UPLOAD DE IMAGEM COM FIREBASE STORAGE */}
                   <div className="form-group form-group--span2 upload-group">
-                    <label>Imagem de Capa (Opcional)</label>
-                    <p className="form-hint">
-                      Você pode subir uma foto do seu computador/celular direto para o Firebase Storage, colar uma URL, ou <strong>deixar em branco</strong> se preferir publicar sem imagem!
+                    <label style={{ fontWeight: 700, color: "#0f172a", fontSize: "0.95rem" }}>
+                      Imagem de Capa (Opcional)
+                    </label>
+                    <p className="form-hint" style={{ color: "#64748b", fontSize: "0.88rem", marginBottom: 10 }}>
+                      Você pode subir uma foto do seu computador/celular direto para o Firebase Storage, colar uma URL direta, ou <strong>deixar em branco</strong> se preferir publicar sem imagem de capa!
                     </p>
 
-                    <div className="upload-box">
+                    <div className="upload-box" style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
                       <input
                         type="file"
                         accept="image/*"
@@ -707,13 +909,15 @@ export default function AdminPage() {
                         onChange={handleFileUpload}
                         style={{ display: "none" }}
                       />
-                      <label htmlFor="image-file-input" className="btn btn--secondary btn--sm">
+                      <label htmlFor="image-file-input" className="btn btn-site-preview" style={{ cursor: "pointer" }}>
                         📁 Subir Foto (Firebase Storage)
                       </label>
                       {isUploadingImage && (
-                        <span className="upload-status">Enviando para o Firebase Storage...</span>
+                        <span className="upload-status" style={{ color: "#0059b2", fontWeight: 600, fontSize: "0.9rem" }}>
+                          ⏳ Enviando para o Firebase Storage...
+                        </span>
                       )}
-                      {uploadError && <span className="upload-error">{uploadError}</span>}
+                      {uploadError && <span className="upload-error" style={{ color: "#dc2626", fontWeight: 600, fontSize: "0.9rem" }}>{uploadError}</span>}
                     </div>
 
                     <div style={{ marginTop: 10 }}>
@@ -726,13 +930,14 @@ export default function AdminPage() {
                     </div>
 
                     {currentPost.coverImage && currentPost.coverImage.trim() !== "" && (
-                      <div className="upload-preview">
+                      <div className="upload-preview" style={{ marginTop: 12 }}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={currentPost.coverImage} alt="Pré-visualização" />
+                        <img src={currentPost.coverImage} alt="Pré-visualização" style={{ maxWidth: 320, maxHeight: 180, objectFit: "cover", borderRadius: 8, border: "1px solid #e2e8f0" }} />
                         <button
                           type="button"
                           className="btn-remove-image"
                           onClick={() => setCurrentPost((prev) => ({ ...prev, coverImage: "" }))}
+                          style={{ display: "block", marginTop: 6, color: "#dc2626", background: "none", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}
                         >
                           ✕ Remover Foto
                         </button>
@@ -741,28 +946,192 @@ export default function AdminPage() {
                   </div>
 
                   <div className="form-group form-group--span2">
-                    <label>Resumo Curto (chamada do artigo)</label>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                      <label style={{ fontWeight: 700, color: "#0f172a", fontSize: "0.95rem" }}>
+                        Resumo Curto (Apresentação no Card e Redes Sociais)
+                      </label>
+                      <button
+                        type="button"
+                        className="btn-regen-slug"
+                        onClick={handleAutoSummary}
+                        title="Extrair automaticamente o primeiro parágrafo do artigo como resumo"
+                      >
+                        ⚡ Preencher do 1º Parágrafo
+                      </button>
+                    </div>
                     <textarea
                       rows={2}
                       value={currentPost.summary || ""}
                       onChange={(e) => setCurrentPost({ ...currentPost, summary: e.target.value })}
-                      placeholder="Breve resumo que aparece no card antes do leitor clicar..."
+                      placeholder="Breve resumo que aparece no card antes do eleitor clicar para ler o artigo completo..."
                     />
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", color: "#64748b", marginTop: 4 }}>
+                      <span>Aparece na capa do site e na listagem de notícias.</span>
+                      <span>{(currentPost.summary || "").length} caracteres</span>
+                    </div>
                   </div>
 
-                  <div className="form-group form-group--span2">
-                    <label>Texto Completo do Artigo *</label>
-                    <textarea
-                      rows={8}
-                      value={currentPost.content || ""}
-                      onChange={(e) => setCurrentPost({ ...currentPost, content: e.target.value })}
-                      placeholder="Escreva aqui o artigo, pronunciamento, prestação de contas..."
-                      required
-                    />
-                  </div>
+                  {/* CONTEÚDO PRINCIPAL: MODO EDITOR OU MODO PREVIEW */}
+                  {postViewMode === "edit" ? (
+                    <div className="form-group form-group--span2">
+                      <label style={{ fontWeight: 700, color: "#0f172a", fontSize: "0.95rem", marginBottom: 8, display: "block" }}>
+                        Texto Completo do Artigo / Matéria *
+                      </label>
+
+                      {/* Barra de Ferramentas de Formatação Rápida */}
+                      <div className="blog-toolbar">
+                        <button
+                          type="button"
+                          className="blog-tool-btn"
+                          onClick={() => insertMarkdown("**", "**", "texto em negrito")}
+                          title="Negrito (**texto**)"
+                        >
+                          <strong>B</strong>
+                        </button>
+                        <button
+                          type="button"
+                          className="blog-tool-btn"
+                          onClick={() => insertMarkdown("*", "*", "texto em itálico")}
+                          title="Itálico (*texto*)"
+                        >
+                          <em>I</em>
+                        </button>
+                        <div className="blog-tool-separator" />
+                        <button
+                          type="button"
+                          className="blog-tool-btn"
+                          onClick={() => insertMarkdown("\n## ", "\n", "Título da Seção")}
+                          title="Título de Seção (H2)"
+                        >
+                          H2
+                        </button>
+                        <button
+                          type="button"
+                          className="blog-tool-btn"
+                          onClick={() => insertMarkdown("\n### ", "\n", "Subtítulo")}
+                          title="Subtítulo (H3)"
+                        >
+                          H3
+                        </button>
+                        <div className="blog-tool-separator" />
+                        <button
+                          type="button"
+                          className="blog-tool-btn"
+                          onClick={() => insertMarkdown("\n> ", "\n", "Citação ou fala do candidato")}
+                          title="Citação em Destaque"
+                        >
+                          ❝ Citação
+                        </button>
+                        <button
+                          type="button"
+                          className="blog-tool-btn"
+                          onClick={() => insertMarkdown("\n- ", "\n", "Item da lista")}
+                          title="Lista com Marcadores"
+                        >
+                          • Lista
+                        </button>
+                        <button
+                          type="button"
+                          className="blog-tool-btn"
+                          onClick={() => insertMarkdown("\n1. ", "\n", "Item numerado")}
+                          title="Lista Numerada"
+                        >
+                          1. Numerada
+                        </button>
+                        <div className="blog-tool-separator" />
+                        <button
+                          type="button"
+                          className="blog-tool-btn"
+                          onClick={() => insertMarkdown("[", "](https://link.com)", "Texto do Link")}
+                          title="Inserir Link"
+                        >
+                          🔗 Link
+                        </button>
+                        <button
+                          type="button"
+                          className="blog-tool-btn"
+                          onClick={() => insertMarkdown("\n\n---\n\n", "", "")}
+                          title="Linha Divisória"
+                        >
+                          — Linha
+                        </button>
+                      </div>
+
+                      <textarea
+                        ref={textareaRef}
+                        rows={12}
+                        className="blog-textarea-with-toolbar"
+                        value={currentPost.content || ""}
+                        onChange={(e) => setCurrentPost({ ...currentPost, content: e.target.value })}
+                        placeholder="Escreva aqui a íntegra da matéria, pronunciamento ou prestação de contas. Use os botões da barra acima para formatar negritos, citações e títulos com agilidade..."
+                        required
+                      />
+
+                      {/* Barra de Métricas em Tempo Real */}
+                      <div className="blog-stats-bar">
+                        <span>
+                          📝 <strong>{(currentPost.content || "").trim().split(/\s+/).filter(Boolean).length}</strong> palavras
+                        </span>
+                        <span>
+                          🔤 <strong>{(currentPost.content || "").length}</strong> caracteres
+                        </span>
+                        <span>
+                          ⏱️ ~<strong>{Math.max(1, Math.ceil(((currentPost.content || "").trim().split(/\s+/).filter(Boolean).length) / 200))}</strong> min de leitura
+                        </span>
+                        <span>
+                          💡 Dica: Destaque pontos-chave com o botão <strong>B</strong> para enriquecer a leitura.
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="form-group form-group--span2">
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                        <label style={{ fontWeight: 700, color: "#0f172a", fontSize: "0.95rem" }}>
+                          Pré-visualização do Artigo
+                        </label>
+                        <span style={{ fontSize: "0.85rem", color: "#64748b" }}>
+                          Exatamente como o eleitor verá na página de notícias
+                        </span>
+                      </div>
+
+                      <div className="blog-live-preview">
+                        <div className="preview-badge-header">
+                          <span style={{ fontWeight: 700, color: "#0059b2", textTransform: "uppercase", fontSize: "0.85rem", letterSpacing: "0.05em" }}>
+                            🏷️ {currentPost.category || "Geral"}
+                          </span>
+                          <span className="preview-status-pill">
+                            {currentPost.status === "published" ? "✓ Publicado no Blog" : "✎ Rascunho"}
+                          </span>
+                        </div>
+
+                        {currentPost.coverImage && currentPost.coverImage.trim() !== "" && (
+                          <div className="preview-cover-container">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={currentPost.coverImage} alt={currentPost.title || "Imagem de Capa"} />
+                          </div>
+                        )}
+
+                        <h1 className="preview-title">
+                          {currentPost.title || "Título do Artigo"}
+                        </h1>
+
+                        {currentPost.summary && (
+                          <p className="preview-summary">
+                            {currentPost.summary}
+                          </p>
+                        )}
+
+                        <div className="preview-body-content">
+                          {renderPreviewMarkdown(currentPost.content || "")}
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="form-group">
-                    <label>Status da Publicação</label>
+                    <label style={{ fontWeight: 700, color: "#0f172a", fontSize: "0.95rem" }}>
+                      Status da Publicação
+                    </label>
                     <select
                       value={currentPost.status || "published"}
                       onChange={(e) =>
@@ -771,33 +1140,35 @@ export default function AdminPage() {
                           status: e.target.value as "published" | "draft",
                         })
                       }
+                      style={{ fontWeight: 600 }}
                     >
-                      <option value="published">Publicado no Blog</option>
-                      <option value="draft">Rascunho (Privado)</option>
+                      <option value="published">🟢 Publicado no Blog (Visível a todos)</option>
+                      <option value="draft">🟡 Rascunho (Privado / Oculto)</option>
                     </select>
                   </div>
 
-                  <div className="form-group form-group--checkbox">
-                    <label>
+                  <div className="form-group form-group--checkbox" style={{ display: "flex", alignItems: "center" }}>
+                    <label style={{ cursor: "pointer", fontWeight: 600, color: "#0f172a" }}>
                       <input
                         type="checkbox"
                         checked={Boolean(currentPost.featured)}
                         onChange={(e) =>
                           setCurrentPost({ ...currentPost, featured: e.target.checked })
                         }
+                        style={{ marginRight: 8 }}
                       />
-                      Destacar no topo do Blog
+                      ⭐ Destacar no topo do Blog
                     </label>
                   </div>
                 </div>
 
-                <div className="form-actions">
-                  <button type="submit" className="btn btn--primary" disabled={isSaving}>
-                    {isSaving ? "Salvando..." : "Salvar Artigo"}
+                <div className="form-actions" style={{ marginTop: 24, display: "flex", gap: 12 }}>
+                  <button type="submit" className="btn btn-save-home" disabled={isSaving}>
+                    {isSaving ? "Gravando Artigo..." : "💾 Salvar Artigo"}
                   </button>
                   <button
                     type="button"
-                    className="btn btn--secondary"
+                    className="btn btn-site-preview"
                     onClick={() => setIsEditingPost(false)}
                   >
                     Cancelar
@@ -891,14 +1262,14 @@ export default function AdminPage() {
                   href="/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="btn btn--secondary"
+                  className="btn btn-site-preview"
                 >
                   👁️ Ver Site ao Vivo
                 </Link>
                 <button
                   type="button"
                   onClick={() => handleSaveHome()}
-                  className="btn btn--primary"
+                  className="btn btn-save-home"
                   disabled={isSaving}
                 >
                   {isSaving ? "Salvando..." : "💾 Salvar Alterações da Home"}
@@ -1847,13 +2218,13 @@ export default function AdminPage() {
                     href="/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="btn btn--secondary"
+                    className="btn btn-site-preview"
                   >
                     👁️ Ver Site ao Vivo
                   </Link>
                   <button
                     type="submit"
-                    className="btn btn--primary"
+                    className="btn btn-save-home"
                     disabled={isSaving}
                   >
                     {isSaving ? "Gravando no Firestore..." : "💾 Salvar Todas as Alterações"}
