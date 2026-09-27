@@ -2,17 +2,9 @@ import { BlogPost, HomeContent } from "./types";
 import { adminDb } from "./firebase-admin";
 import { QueryDocumentSnapshot } from "firebase-admin/firestore";
 
-export const DEFAULT_POSTS: BlogPost[] = [];
+export { DEFAULT_POSTS, DEFAULT_HOME_CONTENT } from "./default-content";
+import { DEFAULT_POSTS, DEFAULT_HOME_CONTENT } from "./default-content";
 
-export const DEFAULT_HOME_CONTENT: HomeContent = {
-  heroTagline: "CORAGEM PARA FAZER. EXPERIÊNCIA PARA AVANÇAR.",
-  heroSubtitle:
-    "Com histórico comprovado de trabalho e dedicação pelo interior e pela capital, João Roberto coloca sua experiência a serviço de todo o Amazonas na Assembleia Legislativa.",
-  aboutHighlight:
-    "Ex-vice-prefeito de Manacapuru, com atuação reconhecida na saúde, infraestrutura e apoio aos produtores locais.",
-  twibbonUrl: "https://www.twibbonize.com/joaoroberto70111depestadual",
-  updatedAt: "2026-09-26T00:00:00Z",
-};
 
 // Cache simples em memória com TTL de 60 segundos para evitar quota de leituras no Firebase
 let cachedPosts: { data: BlogPost[]; timestamp: number } | null = null;
@@ -37,7 +29,6 @@ export async function getPublishedPosts(): Promise<BlogPost[]> {
       .get();
 
     if (snapshot.empty) {
-      // Se a coleção ainda estiver vazia no Firestore, inicializa o cache com os posts padrão
       cachedPosts = { data: DEFAULT_POSTS, timestamp: now };
       return DEFAULT_POSTS;
     }
@@ -161,10 +152,20 @@ export async function getHomeContent(): Promise<HomeContent> {
     }
     const d = doc.data() || {};
     const data: HomeContent = {
-      heroTagline: d.heroTagline || DEFAULT_HOME_CONTENT.heroTagline,
-      heroSubtitle: d.heroSubtitle || DEFAULT_HOME_CONTENT.heroSubtitle,
-      aboutHighlight: d.aboutHighlight || DEFAULT_HOME_CONTENT.aboutHighlight,
-      twibbonUrl: d.twibbonUrl || DEFAULT_HOME_CONTENT.twibbonUrl,
+      ...DEFAULT_HOME_CONTENT,
+      ...d,
+      timeline:
+        Array.isArray(d.timeline) && d.timeline.length > 0
+          ? d.timeline
+          : DEFAULT_HOME_CONTENT.timeline,
+      proposals:
+        Array.isArray(d.proposals) && d.proposals.length > 0
+          ? d.proposals
+          : DEFAULT_HOME_CONTENT.proposals,
+      coalitionParties:
+        Array.isArray(d.coalitionParties) && d.coalitionParties.length > 0
+          ? d.coalitionParties
+          : DEFAULT_HOME_CONTENT.coalitionParties,
       updatedAt: d.updatedAt || "",
     };
     cachedHome = { data, timestamp: now };

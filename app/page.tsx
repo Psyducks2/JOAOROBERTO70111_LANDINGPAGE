@@ -7,28 +7,34 @@ import Coalition from "@/components/Coalition";
 import Social from "@/components/Social";
 import FinalCta from "@/components/FinalCta";
 import Footer from "@/components/Footer";
+import AdminHomeBar from "@/components/AdminHomeBar";
+import { getHomeContent } from "@/lib/posts";
 
-export default function Home() {
+export default async function Home() {
+  const home = await getHomeContent();
+
   return (
     <>
       <a className="skip-link" href="#conteudo">
         Pular para o conteúdo
       </a>
 
+      <AdminHomeBar />
       <Header />
 
       <main id="conteudo">
-        <Hero />
-        <About />
-        <Proposals />
+        <Hero content={home} />
+        <About content={home} />
+        <Proposals content={home} />
         <BlogSection />
-        <Coalition />
-        <Social />
-        <FinalCta />
+        <Coalition content={home} />
+        <Social content={home} />
+        <FinalCta content={home} />
       </main>
 
-      <Footer />
+      <Footer content={home} />
     </>
   );
 }
+
 

@@ -2714,3 +2714,265 @@ body.menu-open {
   }
 }
 
+/* ==========================================================================
+   ADMIN QUICKBAR (BARRA FLUTUANTE NA HOME QUANDO LOGADO)
+   ========================================================================== */
+.admin-quickbar {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: rgba(10, 16, 28, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1.5px solid rgba(212, 175, 55, 0.4);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  padding: 8px 0;
+}
+
+.admin-quickbar-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.admin-quickbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-quickbar-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(212, 175, 55, 0.15);
+  color: var(--gold);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.admin-quickbar-email {
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.admin-quickbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-quickbar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  font-family: inherit;
+}
+
+.btn-quickbar--primary {
+  background: var(--gold);
+  color: #07101e !important;
+  font-weight: 700;
+}
+
+.btn-quickbar--primary:hover {
+  background: #f7d774;
+  transform: translateY(-1px);
+}
+
+.btn-quickbar--ghost {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f1f5f9 !important;
+}
+
+.btn-quickbar--ghost:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.btn-quickbar--logout {
+  background: transparent;
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.3);
+}
+
+.btn-quickbar--logout:hover {
+  background: rgba(248, 113, 113, 0.15);
+  border-color: #f87171;
+}
+
+/* ==========================================================================
+   ADMIN PAINEL: ESTILOS DA ABA CONTEÚDO DA HOME
+   ========================================================================== */
+.admin-home-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.admin-home-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.admin-subtabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+  padding: 8px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+}
+
+.admin-subtab {
+  padding: 9px 16px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: #94a3b8;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.admin-subtab:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+}
+
+.admin-subtab.is-active {
+  background: rgba(212, 175, 55, 0.16);
+  border-color: rgba(212, 175, 55, 0.5);
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.admin-card-section-title {
+  margin-bottom: 24px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.admin-card-section-title h3 {
+  font-size: 19px;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.admin-card-section-title p {
+  font-size: 13.5px;
+  color: #94a3b8;
+}
+
+.admin-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.admin-item-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 18px;
+  transition: border-color 0.2s ease;
+}
+
+.admin-item-card:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.admin-item-card.is-featured-border {
+  border-color: rgba(212, 175, 55, 0.45);
+  background: rgba(212, 175, 55, 0.03);
+}
+
+.admin-item-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.checkbox-featured-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gold);
+  cursor: pointer;
+  background: rgba(212, 175, 55, 0.1);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(212, 175, 55, 0.25);
+}
+
+.checkbox-featured-label input {
+  cursor: pointer;
+  accent-color: var(--gold);
+}
+
+.admin-home-footer-bar {
+  margin-top: 28px;
+  padding: 16px 22px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1.5px solid rgba(212, 175, 55, 0.3);
+  border-radius: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.footer-bar-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+  color: #94a3b8;
+}
+
+.footer-bar-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 10px #22c55e;
+  flex-shrink: 0;
+}
+
+.footer-bar-buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+

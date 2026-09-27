@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { BlogPost, HomeContent } from "@/lib/types";
+import { BlogPost, HomeContent, TimelineItem, ProposalItem } from "@/lib/types";
+import { DEFAULT_HOME_CONTENT } from "@/lib/default-content";
 
 export default function AdminPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -19,13 +20,11 @@ export default function AdminPage() {
 
   // Estados do Dashboard
   const [activeTab, setActiveTab] = useState<"posts" | "home">("posts");
+  const [homeSectionTab, setHomeSectionTab] = useState<
+    "hero" | "sobre" | "propostas" | "coligacao" | "redes" | "final" | "legal"
+  >("hero");
   const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [homeContent, setHomeContent] = useState<HomeContent>({
-    heroTagline: "",
-    heroSubtitle: "",
-    aboutHighlight: "",
-    twibbonUrl: "",
-  });
+  const [homeContent, setHomeContent] = useState<HomeContent>(DEFAULT_HOME_CONTENT);
 
   // Estados do Formulário de Postagem
   const [isEditingPost, setIsEditingPost] = useState(false);
@@ -66,10 +65,46 @@ export default function AdminPage() {
       const homeRes = await fetch("/api/settings/home");
       if (homeRes.ok) {
         const homeData = await homeRes.json();
-        setHomeContent(homeData);
+        setHomeContent({
+          ...DEFAULT_HOME_CONTENT,
+          ...homeData,
+          timeline:
+            Array.isArray(homeData.timeline) && homeData.timeline.length > 0
+              ? homeData.timeline
+              : DEFAULT_HOME_CONTENT.timeline,
+          proposals:
+            Array.isArray(homeData.proposals) && homeData.proposals.length > 0
+              ? homeData.proposals
+              : DEFAULT_HOME_CONTENT.proposals,
+          coalitionParties:
+            Array.isArray(homeData.coalitionParties) &&
+            homeData.coalitionParties.length > 0
+              ? homeData.coalitionParties
+              : DEFAULT_HOME_CONTENT.coalitionParties,
+        });
       }
     } catch (err) {
       console.error("Erro ao carregar dados do painel:", err);
+    }
+  }, []);
+
+  // Leitura de parâmetros de busca da URL (?tab=home etc)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get("tab");
+      if (tab === "home" || tab === "posts") {
+        setActiveTab(tab);
+      }
+      const sec = params.get("section");
+      if (
+        sec &&
+        ["hero", "sobre", "propostas", "coligacao", "redes", "final", "legal"].includes(
+          sec
+        )
+      ) {
+        setHomeSectionTab(sec as any);
+      }
     }
   }, []);
 
@@ -85,6 +120,7 @@ export default function AdminPage() {
 
     return () => unsubscribe();
   }, [loadData]);
+
 
   // Login handler com suporte a múltiplos aliases e auto-recuperação
   const handleLogin = async (e: React.FormEvent) => {
@@ -272,9 +308,66 @@ export default function AdminPage() {
     }
   };
 
+  // Handlers para Linha do Tempo da Home
+  const handleAddTimeline = () => {
+    setHomeContent((prev) => ({
+      ...prev,
+      timeline: [...(prev.timeline || []), { title: "", text: "" }],
+    }));
+  };
+
+  const handleUpdateTimeline = (
+    index: number,
+    field: "title" | "text",
+    val: string
+  ) => {
+    setHomeContent((prev) => {
+      const next = [...(prev.timeline || [])];
+      next[index] = { ...next[index], [field]: val };
+      return { ...prev, timeline: next };
+    });
+  };
+
+  const handleDeleteTimeline = (index: number) => {
+    setHomeContent((prev) => ({
+      ...prev,
+      timeline: (prev.timeline || []).filter((_, i) => i !== index),
+    }));
+  };
+
+  // Handlers para Propostas da Home
+  const handleAddProposal = () => {
+    setHomeContent((prev) => ({
+      ...prev,
+      proposals: [
+        ...(prev.proposals || []),
+        { title: "", text: "", featured: false },
+      ],
+    }));
+  };
+
+  const handleUpdateProposal = (
+    index: number,
+    field: "title" | "text" | "featured",
+    val: unknown
+  ) => {
+    setHomeContent((prev) => {
+      const next = [...(prev.proposals || [])];
+      next[index] = { ...next[index], [field]: val } as ProposalItem;
+      return { ...prev, proposals: next };
+    });
+  };
+
+  const handleDeleteProposal = (index: number) => {
+    setHomeContent((prev) => ({
+      ...prev,
+      proposals: (prev.proposals || []).filter((_, i) => i !== index),
+    }));
+  };
+
   // Salvar Configurações da Home
-  const handleSaveHome = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveHome = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!user) return;
     setIsSaving(true);
     setSaveSuccess("");
@@ -295,13 +388,15 @@ export default function AdminPage() {
         throw new Error("Falha ao salvar alterações da Home");
       }
 
-      setSaveSuccess("Conteúdo da Home atualizado com sucesso!");
+      setSaveSuccess("Conteúdo da Página Inicial salvo com sucesso e publicado!");
+      setTimeout(() => setSaveSuccess(""), 4500);
     } catch (err: unknown) {
       setSaveError(err instanceof Error ? err.message : "Erro ao salvar");
     } finally {
       setIsSaving(false);
     }
   };
+
 
   if (loading) {
     return (
@@ -782,72 +877,988 @@ export default function AdminPage() {
         {/* ABA: CONTEÚDO DA HOME */}
         {activeTab === "home" && (
           <div className="admin-tab-content">
-            <div className="admin-section-header">
+            <div className="admin-section-header admin-home-header">
               <div>
-                <h2>Informações Dinâmicas da Página Inicial (Home)</h2>
-                <p>Altere os textos de destaque, subtítulos e links do site sem precisar mexer no código.</p>
+                <h2>Gerenciador Completo da Página Inicial (Home)</h2>
+                <p>
+                  Edite todos os textos, títulos, propostas, biografia, redes sociais e dados oficiais.
+                  As alterações são salvas no Firestore e publicadas imediatamente no site.
+                </p>
+              </div>
+
+              <div className="admin-home-header-actions">
+                <Link
+                  href="/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn--secondary"
+                >
+                  👁️ Ver Site ao Vivo
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => handleSaveHome()}
+                  className="btn btn--primary"
+                  disabled={isSaving}
+                >
+                  {isSaving ? "Salvando..." : "💾 Salvar Alterações da Home"}
+                </button>
               </div>
             </div>
 
-            <form onSubmit={handleSaveHome} className="admin-card">
-              <div className="form-grid">
-                <div className="form-group form-group--span2">
-                  <label>Slogan Principal do Hero</label>
-                  <input
-                    type="text"
-                    value={homeContent.heroTagline}
-                    onChange={(e) =>
-                      setHomeContent({ ...homeContent, heroTagline: e.target.value })
-                    }
-                    placeholder="CORAGEM PARA FAZER. EXPERIÊNCIA PARA AVANÇAR."
-                    required
-                  />
-                </div>
+            {/* Sub-navegação em Abas por Seção */}
+            <div className="admin-subtabs" role="tablist">
+              <button
+                type="button"
+                className={`admin-subtab ${homeSectionTab === "hero" ? "is-active" : ""}`}
+                onClick={() => setHomeSectionTab("hero")}
+              >
+                🌟 Topo & Hero
+              </button>
+              <button
+                type="button"
+                className={`admin-subtab ${homeSectionTab === "sobre" ? "is-active" : ""}`}
+                onClick={() => setHomeSectionTab("sobre")}
+              >
+                👤 Sobre & Biografia
+              </button>
+              <button
+                type="button"
+                className={`admin-subtab ${homeSectionTab === "propostas" ? "is-active" : ""}`}
+                onClick={() => setHomeSectionTab("propostas")}
+              >
+                🎯 Propostas & Bandeiras ({homeContent.proposals?.length || 0})
+              </button>
+              <button
+                type="button"
+                className={`admin-subtab ${homeSectionTab === "coligacao" ? "is-active" : ""}`}
+                onClick={() => setHomeSectionTab("coligacao")}
+              >
+                🤝 Coligação & Eleições
+              </button>
+              <button
+                type="button"
+                className={`admin-subtab ${homeSectionTab === "redes" ? "is-active" : ""}`}
+                onClick={() => setHomeSectionTab("redes")}
+              >
+                📱 Redes Sociais & Links
+              </button>
+              <button
+                type="button"
+                className={`admin-subtab ${homeSectionTab === "final" ? "is-active" : ""}`}
+                onClick={() => setHomeSectionTab("final")}
+              >
+                📢 Chamada Final
+              </button>
+              <button
+                type="button"
+                className={`admin-subtab ${homeSectionTab === "legal" ? "is-active" : ""}`}
+                onClick={() => setHomeSectionTab("legal")}
+              >
+                📄 Rodapé & CNPJ
+              </button>
+            </div>
 
-                <div className="form-group form-group--span2">
-                  <label>Subtítulo do Hero</label>
-                  <textarea
-                    rows={3}
-                    value={homeContent.heroSubtitle}
-                    onChange={(e) =>
-                      setHomeContent({ ...homeContent, heroSubtitle: e.target.value })
-                    }
-                    placeholder="Descrição introdutória logo abaixo da foto principal..."
-                    required
-                  />
-                </div>
+            <form onSubmit={handleSaveHome} className="admin-home-form">
+              {/* SUBTAB: HERO */}
+              {homeSectionTab === "hero" && (
+                <div className="admin-card">
+                  <div className="admin-card-section-title">
+                    <h3>Identificação & Apresentação no Topo (Hero)</h3>
+                    <p>Textos e chamadas que o eleitor vê no primeiro impacto ao abrir o site.</p>
+                  </div>
 
-                <div className="form-group form-group--span2">
-                  <label>Destaque Biográfico da Seção &ldquo;Sobre&rdquo;</label>
-                  <textarea
-                    rows={2}
-                    value={homeContent.aboutHighlight}
-                    onChange={(e) =>
-                      setHomeContent({ ...homeContent, aboutHighlight: e.target.value })
-                    }
-                    placeholder="Ex-vice-prefeito de Manacapuru, com atuação reconhecida na saúde..."
-                    required
-                  />
-                </div>
+                  <div className="form-grid">
+                    <div className="form-group">
+                      <label>Selo / Eyebrow Superior</label>
+                      <input
+                        type="text"
+                        value={homeContent.heroEyebrow || ""}
+                        onChange={(e) =>
+                          setHomeContent({ ...homeContent, heroEyebrow: e.target.value })
+                        }
+                        placeholder="Eleições 2026 · Amazonas"
+                      />
+                    </div>
 
-                <div className="form-group form-group--span2">
-                  <label>Link do Botão de Apoio (Twibbonize / Twibbon)</label>
-                  <input
-                    type="url"
-                    value={homeContent.twibbonUrl}
-                    onChange={(e) =>
-                      setHomeContent({ ...homeContent, twibbonUrl: e.target.value })
-                    }
-                    placeholder="https://www.twibbonize.com/joaoroberto70111depestadual"
-                    required
-                  />
-                </div>
-              </div>
+                    <div className="form-group">
+                      <label>Nome do Candidato em Destaque</label>
+                      <input
+                        type="text"
+                        value={homeContent.heroCandidateName || ""}
+                        onChange={(e) =>
+                          setHomeContent({
+                            ...homeContent,
+                            heroCandidateName: e.target.value,
+                          })
+                        }
+                        placeholder="João Roberto"
+                      />
+                    </div>
 
-              <div className="form-actions" style={{ marginTop: 24 }}>
-                <button type="submit" className="btn btn--primary" disabled={isSaving}>
-                  {isSaving ? "Gravando no Firestore..." : "Salvar Conteúdo da Home"}
-                </button>
+                    <div className="form-group">
+                      <label>Número de Urna (Grande no Topo)</label>
+                      <input
+                        type="text"
+                        value={homeContent.heroNumber || ""}
+                        onChange={(e) =>
+                          setHomeContent({ ...homeContent, heroNumber: e.target.value })
+                        }
+                        placeholder="70111"
+                      />
+                    </div>
+
+                    <div className="form-group form-group--span2">
+                      <label>Slogan Principal do Hero</label>
+                      <input
+                        type="text"
+                        value={homeContent.heroTagline || ""}
+                        onChange={(e) =>
+                          setHomeContent({ ...homeContent, heroTagline: e.target.value })
+                        }
+                        placeholder="CORAGEM PARA FAZER. EXPERIÊNCIA PARA AVANÇAR."
+                      />
+                    </div>
+
+                    <div className="form-group form-group--span2">
+                      <label>Texto Subtítulo / Apresentação Introdutória</label>
+                      <textarea
+                        rows={3}
+                        value={homeContent.heroSubtitle || ""}
+                        onChange={(e) =>
+                          setHomeContent({ ...homeContent, heroSubtitle: e.target.value })
+                        }
+                        placeholder="O vice-prefeito mais econômico do Amazonas..."
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Botão 1 (Primário) - Texto</label>
+                      <input
+                        type="text"
+                        value={homeContent.heroPrimaryBtnText || ""}
+                        onChange={(e) =>
+                          setHomeContent({
+                            ...homeContent,
+                            heroPrimaryBtnText: e.target.value,
+                          })
+                        }
+                        placeholder="Seguir no Instagram"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Botão 1 (Primário) - Link de Destino</label>
+                      <input
+                        type="url"
+                        value={homeContent.heroPrimaryBtnUrl || ""}
+                        onChange={(e) =>
+                          setHomeContent({
+                            ...homeContent,
+                            heroPrimaryBtnUrl: e.target.value,
+                          })
+                        }
+                        placeholder="https://www.instagram.com/joaoroberto.am/"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Botão 2 (Secundário) - Texto</label>
+                      <input
+                        type="text"
+                        value={homeContent.heroSecondaryBtnText || ""}
+                        onChange={(e) =>
+                          setHomeContent({
+                            ...homeContent,
+                            heroSecondaryBtnText: e.target.value,
+                          })
+                        }
+                        placeholder="Apoiar a campanha"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Botão 2 (Secundário) - Link de Destino (Twibbon/Apoio)</label>
+                      <input
+                        type="url"
+                        value={
+                          homeContent.heroSecondaryBtnUrl || homeContent.twibbonUrl || ""
+                        }
+                        onChange={(e) =>
+                          setHomeContent({
+                            ...homeContent,
+                            heroSecondaryBtnUrl: e.target.value,
+                            twibbonUrl: e.target.value,
+                          })
+                        }
+                        placeholder="https://www.twibbonize.com/joaoroberto70111depestadual"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Selo Informativo 1 (Chip)</label>
+                      <input
+                        type="text"
+                        value={homeContent.heroChip1 || ""}
+                        onChange={(e) =>
+                          setHomeContent({ ...homeContent, heroChip1: e.target.value })
+                        }
+                        placeholder="Partido AVANTE"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Selo Informativo 2 (Chip)</label>
+                      <input
+                        type="text"
+                        value={homeContent.heroChip2 || ""}
+                        onChange={(e) =>
+                          setHomeContent({ ...homeContent, heroChip2: e.target.value })
+                        }
+                        placeholder="Coligação Pra Cima, Amazonas"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Selo Informativo 3 (Chip)</label>
+                      <input
+                        type="text"
+                        value={homeContent.heroChip3 || ""}
+                        onChange={(e) =>
+                          setHomeContent({ ...homeContent, heroChip3: e.target.value })
+                        }
+                        placeholder="Candidatura deferida (TSE)"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* SUBTAB: SOBRE */}
+              {homeSectionTab === "sobre" && (
+                <div className="od-stack" style={{ ["--od-gap" as string]: "24px" }}>
+                  <div className="admin-card">
+                    <div className="admin-card-section-title">
+                      <h3>Seção Sobre & Biografia</h3>
+                      <p>Histórico, formação e destaques da vida pública de João Roberto.</p>
+                    </div>
+
+                    <div className="form-grid">
+                      <div className="form-group">
+                        <label>Eyebrow da Seção</label>
+                        <input
+                          type="text"
+                          value={homeContent.aboutEyebrow || ""}
+                          onChange={(e) =>
+                            setHomeContent({ ...homeContent, aboutEyebrow: e.target.value })
+                          }
+                          placeholder="Quem é João Roberto"
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label>Título Principal</label>
+                        <input
+                          type="text"
+                          value={homeContent.aboutTitle || ""}
+                          onChange={(e) =>
+                            setHomeContent({ ...homeContent, aboutTitle: e.target.value })
+                          }
+                          placeholder="Contador, gestor público e liderança do interior"
+                        />
+                      </div>
+
+                      <div className="form-group form-group--span2">
+                        <label>Primeiro Parágrafo da Biografia</label>
+                        <textarea
+                          rows={4}
+                          value={homeContent.aboutParagraph1 || ""}
+                          onChange={(e) =>
+                            setHomeContent({
+                              ...homeContent,
+                              aboutParagraph1: e.target.value,
+                            })
+                          }
+                          placeholder="Natural de Lábrea, no Amazonas..."
+                        />
+                      </div>
+
+                      <div className="form-group form-group--span2">
+                        <label>Segundo Parágrafo da Biografia</label>
+                        <textarea
+                          rows={4}
+                          value={homeContent.aboutParagraph2 || ""}
+                          onChange={(e) =>
+                            setHomeContent({
+                              ...homeContent,
+                              aboutParagraph2: e.target.value,
+                            })
+                          }
+                          placeholder="Sua atuação discreta e comprometida no interior..."
+                        />
+                      </div>
+
+                      <div className="form-group form-group--span2">
+                        <label>Destaque Biográfico Resumido</label>
+                        <textarea
+                          rows={2}
+                          value={homeContent.aboutHighlight || ""}
+                          onChange={(e) =>
+                            setHomeContent({
+                              ...homeContent,
+                              aboutHighlight: e.target.value,
+                            })
+                          }
+                          placeholder="Ex-vice-prefeito de Lábrea, com atuação reconhecida na saúde..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Linha do Tempo */}
+                  <div className="admin-card">
+                    <div className="admin-section-header" style={{ marginBottom: 16 }}>
+                      <div>
+                        <h3>Linha do Tempo (Trajetória Política)</h3>
+                        <p>Marcos históricos e eventos exibidos ao lado da biografia.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleAddTimeline}
+                        className="btn btn--secondary btn--sm"
+                      >
+                        ➕ Adicionar Marco
+                      </button>
+                    </div>
+
+                    <div className="admin-items-list">
+                      {(homeContent.timeline || []).map((item, index) => (
+                        <div key={index} className="admin-item-card">
+                          <div className="admin-item-card-header">
+                            <span className="badge-tag">Marco #{index + 1}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteTimeline(index)}
+                              className="btn-icon btn-icon--delete"
+                              title="Remover este marco"
+                            >
+                              🗑️
+                            </button>
+                          </div>
+                          <div className="form-grid">
+                            <div className="form-group form-group--span2">
+                              <label>Título do Marco / Ano</label>
+                              <input
+                                type="text"
+                                value={item.title}
+                                onChange={(e) =>
+                                  handleUpdateTimeline(index, "title", e.target.value)
+                                }
+                                placeholder="Ex: Vice-prefeito de Lábrea"
+                              />
+                            </div>
+                            <div className="form-group form-group--span2">
+                              <label>Descrição do Acontecimento</label>
+                              <textarea
+                                rows={2}
+                                value={item.text}
+                                onChange={(e) =>
+                                  handleUpdateTimeline(index, "text", e.target.value)
+                                }
+                                placeholder="Descrição detalhada..."
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* SUBTAB: PROPOSTAS */}
+              {homeSectionTab === "propostas" && (
+                <div className="od-stack" style={{ ["--od-gap" as string]: "24px" }}>
+                  <div className="admin-card">
+                    <div className="admin-card-section-title">
+                      <h3>Apresentação das Propostas & Bandeiras</h3>
+                      <p>Cabeçalho da seção onde os eixos de atuação parlamentar são exibidos.</p>
+                    </div>
+
+                    <div className="form-grid">
+                      <div className="form-group">
+                        <label>Eyebrow da Seção</label>
+                        <input
+                          type="text"
+                          value={homeContent.proposalsEyebrow || ""}
+                          onChange={(e) =>
+                            setHomeContent({
+                              ...homeContent,
+                              proposalsEyebrow: e.target.value,
+                            })
+                          }
+                          placeholder="Bandeiras de campanha"
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label>Título da Seção</label>
+                        <input
+                          type="text"
+                          value={homeContent.proposalsTitle || ""}
+                          onChange={(e) =>
+                            setHomeContent({
+                              ...homeContent,
+                              proposalsTitle: e.target.value,
+                            })
+                          }
+                          placeholder="Propostas para o Amazonas"
+                        />
+                      </div>
+
+                      <div className="form-group form-group--span2">
+                        <label>Subtítulo / Texto Explicativo</label>
+                        <textarea
+                          rows={2}
+                          value={homeContent.proposalsSubtitle || ""}
+                          onChange={(e) =>
+                            setHomeContent({
+                              ...homeContent,
+                              proposalsSubtitle: e.target.value,
+                            })
+                          }
+                          placeholder="Um plano de trabalho construído a partir da vivência no interior..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Lista de Propostas */}
+                  <div className="admin-card">
+                    <div className="admin-section-header" style={{ marginBottom: 16 }}>
+                      <div>
+                        <h3>Lista de Bandeiras & Propostas</h3>
+                        <p>Adicione, remova ou altere as bandeiras de campanha de João Roberto.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleAddProposal}
+                        className="btn btn--secondary btn--sm"
+                      >
+                        ➕ Adicionar Nova Bandeira
+                      </button>
+                    </div>
+
+                    <div className="admin-items-list">
+                      {(homeContent.proposals || []).map((prop, index) => (
+                        <div
+                          key={index}
+                          className={`admin-item-card ${prop.featured ? "is-featured-border" : ""}`}
+                        >
+                          <div className="admin-item-card-header">
+                            <span className="badge-tag">Proposta #{index + 1}</span>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                              <label className="checkbox-featured-label">
+                                <input
+                                  type="checkbox"
+                                  checked={Boolean(prop.featured)}
+                                  onChange={(e) =>
+                                    handleUpdateProposal(
+                                      index,
+                                      "featured",
+                                      e.target.checked
+                                    )
+                                  }
+                                />
+                                🌟 Proposta Principal (Destaque Dourado)
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteProposal(index)}
+                                className="btn-icon btn-icon--delete"
+                                title="Remover proposta"
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          </div>
+                          <div className="form-grid">
+                            <div className="form-group form-group--span2">
+                              <label>Título da Bandeira / Proposta</label>
+                              <input
+                                type="text"
+                                value={prop.title}
+                                onChange={(e) =>
+                                  handleUpdateProposal(index, "title", e.target.value)
+                                }
+                                placeholder="Ex: Descentralização da saúde no Amazonas"
+                              />
+                            </div>
+                            <div className="form-group form-group--span2">
+                              <label>Descrição Completa da Proposta</label>
+                              <textarea
+                                rows={3}
+                                value={prop.text}
+                                onChange={(e) =>
+                                  handleUpdateProposal(index, "text", e.target.value)
+                                }
+                                placeholder="Explicação detalhada da ação legislativa proposta..."
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* SUBTAB: COLIGAÇÃO */}
+              {homeSectionTab === "coligacao" && (
+                <div className="admin-card">
+                  <div className="admin-card-section-title">
+                    <h3>Força Política, Coligação & Dados Eleitorais</h3>
+                    <p>Aliança partidária e informações oficiais de candidatura da urna.</p>
+                  </div>
+
+                  <div className="form-grid">
+                    <div className="form-group">
+                      <label>Eyebrow da Seção</label>
+                      <input
+                        type="text"
+                        value={homeContent.coalitionEyebrow || ""}
+                        onChange={(e) =>
+                          setHomeContent({
+                            ...homeContent,
+                            coalitionEyebrow: e.target.value,
+                          })
+                        }
+                        placeholder="Força política"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Título da Seção</label>
+                      <input
+                        type="text"
+                        value={homeContent.coalitionTitle || ""}
+                        onChange={(e) =>
+                          setHomeContent({
+                            ...homeContent,
+                            coalitionTitle: e.target.value,
+                          })
+                        }
+                        placeholder="Coligação Pra Cima, Amazonas"
+                      />
+                    </div>
+
+                    <div className="form-group form-group--span2">
+                      <label>Texto Explicativo da Coligação</label>
+                      <textarea
+                        rows={3}
+                        value={homeContent.coalitionLede || ""}
+                        onChange={(e) =>
+                          setHomeContent({
+                            ...homeContent,
+                            coalitionLede: e.target.value,
+                          })
+                        }
+                        placeholder="João Roberto integra a coligação encabeçada por David Almeida..."
+                      />
+                    </div>
+
+                    <div className="form-group form-group--span2">
+                      <label>Partidos da Coligação (Separados por vírgula)</label>
+                      <input
+                        type="text"
+                        value={
+                          homeContent.coalitionParties
+                            ? homeContent.coalitionParties.join(", ")
+                            : ""
+                        }
+                        onChange={(e) =>
+                          setHomeContent({
+                            ...homeContent,
+                            coalitionParties: e.target.value
+                              .split(",")
+                              .map((s) => s.trim())
+                              .filter(Boolean),
+                          })
+                        }
+                        placeholder="AVANTE, PDT, DC, PRD, SOLIDARIEDADE"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Estatística 1 - Valor / Número</label>
+                      <input
+                        type="text"
+                        value={homeContent.coalitionStat1Num || ""}
+                        onChange={(e) =>
+                          setHomeContent({
+                            ...homeContent,
+                            coalitionStat1Num: e.target.value,
+                          })
+                        }
+                        placeholder="70111"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Estatística 1 - Legenda</label>
+                      <input
+                        type="text"
+                        value={homeContent.coalitionStat1Label || ""}
+                        onChange={(e) =>
+                          setHomeContent({
+                            ...homeContent,
+                            coalitionStat1Label: e.target.value,
+                          })
+                        }
+                        placeholder="NÚMERO DE URNA — JOÃO ROBERTO"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Estatística 2 - Valor / Cargo</label>
+                      <input
+                        type="text"
+                        value={homeContent.coalitionStat2Num || ""}
+                        onChange={(e) =>
+                          setHomeContent({
+                            ...homeContent,
+                            coalitionStat2Num: e.target.value,
+                          })
+                        }
+                        placeholder="Deputado Estadual"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Estatística 2 - Legenda</label>
+                      <input
+                        type="text"
+                        value={homeContent.coalitionStat2Label || ""}
+                        onChange={(e) =>
+                          setHomeContent({
+                            ...homeContent,
+                            coalitionStat2Label: e.target.value,
+                          })
+                        }
+                        placeholder="CARGO PRETENDIDO — AMAZONAS"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Estatística 3 - Valor / Status TSE</label>
+                      <input
+                        type="text"
+                        value={homeContent.coalitionStat3Num || ""}
+                        onChange={(e) =>
+                          setHomeContent({
+                            ...homeContent,
+                            coalitionStat3Num: e.target.value,
+                          })
+                        }
+                        placeholder="Deferida"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Estatística 3 - Legenda</label>
+                      <input
+                        type="text"
+                        value={homeContent.coalitionStat3Label || ""}
+                        onChange={(e) =>
+                          setHomeContent({
+                            ...homeContent,
+                            coalitionStat3Label: e.target.value,
+                          })
+                        }
+                        placeholder="SITUAÇÃO DA CANDIDATURA (TSE)"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* SUBTAB: REDES SOCIAIS */}
+              {homeSectionTab === "redes" && (
+                <div className="admin-card">
+                  <div className="admin-card-section-title">
+                    <h3>Redes Sociais & Links Oficiais</h3>
+                    <p>Links diretos para os canais de contato e mobilização da campanha.</p>
+                  </div>
+
+                  <div className="form-grid">
+                    <div className="form-group">
+                      <label>Eyebrow da Seção</label>
+                      <input
+                        type="text"
+                        value={homeContent.socialEyebrow || ""}
+                        onChange={(e) =>
+                          setHomeContent({
+                            ...homeContent,
+                            socialEyebrow: e.target.value,
+                          })
+                        }
+                        placeholder="Acompanhe e apoie"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Título da Seção</label>
+                      <input
+                        type="text"
+                        value={homeContent.socialTitle || ""}
+                        onChange={(e) =>
+                          setHomeContent({ ...homeContent, socialTitle: e.target.value })
+                        }
+                        placeholder="Redes sociais"
+                      />
+                    </div>
+
+                    <div className="form-group form-group--span2">
+                      <label>Texto Subtítulo</label>
+                      <textarea
+                        rows={2}
+                        value={homeContent.socialLede || ""}
+                        onChange={(e) =>
+                          setHomeContent({ ...homeContent, socialLede: e.target.value })
+                        }
+                        placeholder="Siga a campanha e fique por dentro das ações..."
+                      />
+                    </div>
+
+                    <div className="form-group form-group--span2">
+                      <label>Instagram Principal (@joaoroberto.am)</label>
+                      <input
+                        type="url"
+                        value={homeContent.instagramMainUrl || ""}
+                        onChange={(e) =>
+                          setHomeContent({
+                            ...homeContent,
+                            instagramMainUrl: e.target.value,
+                          })
+                        }
+                        placeholder="https://www.instagram.com/joaoroberto.am/"
+                      />
+                    </div>
+
+                    <div className="form-group form-group--span2">
+                      <label>Instagram da Campanha (@amazonascomjoaoroberto)</label>
+                      <input
+                        type="url"
+                        value={homeContent.instagramSecondaryUrl || ""}
+                        onChange={(e) =>
+                          setHomeContent({
+                            ...homeContent,
+                            instagramSecondaryUrl: e.target.value,
+                          })
+                        }
+                        placeholder="https://www.instagram.com/amazonascomjoaoroberto"
+                      />
+                    </div>
+
+                    <div className="form-group form-group--span2">
+                      <label>TikTok (@joaoviceprefeito)</label>
+                      <input
+                        type="url"
+                        value={homeContent.tiktokUrl || ""}
+                        onChange={(e) =>
+                          setHomeContent({ ...homeContent, tiktokUrl: e.target.value })
+                        }
+                        placeholder="https://www.tiktok.com/@joaoviceprefeito"
+                      />
+                    </div>
+
+                    <div className="form-group form-group--span2">
+                      <label>Twibbonize / Moldura Oficial de Apoio</label>
+                      <input
+                        type="url"
+                        value={homeContent.twibbonUrl || ""}
+                        onChange={(e) =>
+                          setHomeContent({ ...homeContent, twibbonUrl: e.target.value })
+                        }
+                        placeholder="https://www.twibbonize.com/joaoroberto70111depestadual"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* SUBTAB: CHAMADA FINAL */}
+              {homeSectionTab === "final" && (
+                <div className="admin-card">
+                  <div className="admin-card-section-title">
+                    <h3>Seção de Fechamento / Chamada Final de Voto</h3>
+                    <p>Card azul escuro com chamada para votar no 70111 logo antes do rodapé.</p>
+                  </div>
+
+                  <div className="form-grid">
+                    <div className="form-group form-group--span2">
+                      <label>Título da Chamada Final</label>
+                      <input
+                        type="text"
+                        value={homeContent.finalCtaTitle || ""}
+                        onChange={(e) =>
+                          setHomeContent({
+                            ...homeContent,
+                            finalCtaTitle: e.target.value,
+                          })
+                        }
+                        placeholder="Vote 70111"
+                      />
+                    </div>
+
+                    <div className="form-group form-group--span2">
+                      <label>Texto da Chamada de Voto</label>
+                      <textarea
+                        rows={3}
+                        value={homeContent.finalCtaText || ""}
+                        onChange={(e) =>
+                          setHomeContent({ ...homeContent, finalCtaText: e.target.value })
+                        }
+                        placeholder="João Roberto — Deputado Estadual pelo Amazonas..."
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Texto do Botão de Ação</label>
+                      <input
+                        type="text"
+                        value={homeContent.finalCtaBtnText || ""}
+                        onChange={(e) =>
+                          setHomeContent({
+                            ...homeContent,
+                            finalCtaBtnText: e.target.value,
+                          })
+                        }
+                        placeholder="Seguir a campanha"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Link de Destino do Botão</label>
+                      <input
+                        type="url"
+                        value={homeContent.finalCtaBtnUrl || ""}
+                        onChange={(e) =>
+                          setHomeContent({
+                            ...homeContent,
+                            finalCtaBtnUrl: e.target.value,
+                          })
+                        }
+                        placeholder="https://www.instagram.com/joaoroberto.am/"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* SUBTAB: DADOS LEGAIS & RODAPÉ */}
+              {homeSectionTab === "legal" && (
+                <div className="admin-card">
+                  <div className="admin-card-section-title">
+                    <h3>Dados Eleitorais Oficiais & Rodapé (TSE)</h3>
+                    <p>Informações de conformidade com a legislação eleitoral e prestação de contas.</p>
+                  </div>
+
+                  <div className="form-grid">
+                    <div className="form-group">
+                      <label>CNPJ da Campanha Oficial</label>
+                      <input
+                        type="text"
+                        value={homeContent.legalCnpj || ""}
+                        onChange={(e) =>
+                          setHomeContent({ ...homeContent, legalCnpj: e.target.value })
+                        }
+                        placeholder="68.404.127/0001-00"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Nome Oficial do Candidato</label>
+                      <input
+                        type="text"
+                        value={homeContent.legalCandidateName || ""}
+                        onChange={(e) =>
+                          setHomeContent({
+                            ...homeContent,
+                            legalCandidateName: e.target.value,
+                          })
+                        }
+                        placeholder="João Roberto"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Cargo Pretendido</label>
+                      <input
+                        type="text"
+                        value={homeContent.legalOffice || ""}
+                        onChange={(e) =>
+                          setHomeContent({ ...homeContent, legalOffice: e.target.value })
+                        }
+                        placeholder="Deputado Estadual"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Ano Eleitoral</label>
+                      <input
+                        type="text"
+                        value={homeContent.legalElectionYear || ""}
+                        onChange={(e) =>
+                          setHomeContent({
+                            ...homeContent,
+                            legalElectionYear: e.target.value,
+                          })
+                        }
+                        placeholder="2026"
+                      />
+                    </div>
+
+                    <div className="form-group form-group--span2">
+                      <label>Nota Legal de Propaganda Eleitoral</label>
+                      <textarea
+                        rows={3}
+                        value={homeContent.legalNote || ""}
+                        onChange={(e) =>
+                          setHomeContent({ ...homeContent, legalNote: e.target.value })
+                        }
+                        placeholder="Conteúdo de propaganda eleitoral na internet em conformidade com a Resolução TSE..."
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* BARRA DE AÇÃO FIXA / BOTTOM ACTIONS */}
+              <div className="admin-home-footer-bar">
+                <div className="footer-bar-info">
+                  <span className="footer-bar-dot" />
+                  <span>
+                    Todas as abas são salvas juntas no Firestore e publicadas instantaneamente.
+                  </span>
+                </div>
+                <div className="footer-bar-buttons">
+                  <Link
+                    href="/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn--secondary"
+                  >
+                    👁️ Ver Site ao Vivo
+                  </Link>
+                  <button
+                    type="submit"
+                    className="btn btn--primary"
+                    disabled={isSaving}
+                  >
+                    {isSaving ? "Gravando no Firestore..." : "💾 Salvar Todas as Alterações"}
+                  </button>
+                </div>
               </div>
             </form>
           </div>

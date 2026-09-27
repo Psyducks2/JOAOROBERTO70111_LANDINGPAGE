@@ -1,4 +1,10 @@
-const TIMELINE = [
+import { HomeContent } from "@/lib/types";
+
+interface AboutProps {
+  content?: HomeContent;
+}
+
+const DEFAULT_TIMELINE = [
   {
     title: "Vice-prefeito de Lábrea",
     text: "Gestão reconhecida pela economia de recursos públicos e pela atuação próxima da população do interior.",
@@ -17,33 +23,51 @@ const TIMELINE = [
   },
 ];
 
-export default function About() {
+export default function About({ content }: AboutProps) {
+  const eyebrow = content?.aboutEyebrow || "Quem é João Roberto";
+  const title =
+    content?.aboutTitle || "Contador, gestor público e liderança do interior";
+  const paragraph1 = content?.aboutParagraph1;
+  const paragraph2 = content?.aboutParagraph2;
+  const timeline =
+    content?.timeline && content.timeline.length > 0
+      ? content.timeline
+      : DEFAULT_TIMELINE;
+
   return (
     <section className="section about" id="sobre">
       <div className="container about-grid">
         <div>
-          <span className="eyebrow">Quem é João Roberto</span>
-          <h2 className="title">Contador, gestor público e liderança do interior</h2>
+          <span className="eyebrow">{eyebrow}</span>
+          <h2 className="title">{title}</h2>
           <div className="about-card" style={{ marginTop: 24 }}>
-            <p>
-              Natural de <strong>Lábrea</strong>, no Amazonas, João Roberto é
-              contador de formação e construiu sua trajetória política como{" "}
-              <strong>vice-prefeito de Lábrea</strong>, onde ficou conhecido por
-              uma gestão marcada pela austeridade e pelo baixo uso de recursos
-              públicos — o que lhe rendeu o apelido de{" "}
-              <strong>&ldquo;o vice-prefeito mais econômico do Amazonas&rdquo;</strong>.
-            </p>
-            <p>
-              Sua atuação discreta e comprometida no interior construiu uma base
-              política forte na região do <strong>Purus</strong> e no sul do
-              estado, com boa avaliação popular pela visibilidade regional que
-              trouxe a essas comunidades.
-            </p>
+            {paragraph1 ? (
+              <p>{paragraph1}</p>
+            ) : (
+              <p>
+                Natural de <strong>Lábrea</strong>, no Amazonas, João Roberto é
+                contador de formação e construiu sua trajetória política como{" "}
+                <strong>vice-prefeito de Lábrea</strong>, onde ficou conhecido por
+                uma gestão marcada pela austeridade e pelo baixo uso de recursos
+                públicos — o que lhe rendeu o apelido de{" "}
+                <strong>&ldquo;o vice-prefeito mais econômico do Amazonas&rdquo;</strong>.
+              </p>
+            )}
+            {paragraph2 ? (
+              <p>{paragraph2}</p>
+            ) : (
+              <p>
+                Sua atuação discreta e comprometida no interior construiu uma base
+                política forte na região do <strong>Purus</strong> e no sul do
+                estado, com boa avaliação popular pela visibilidade regional que
+                trouxe a essas comunidades.
+              </p>
+            )}
           </div>
         </div>
         <div className="timeline">
-          {TIMELINE.map((item) => (
-            <div className="timeline-item" key={item.title}>
+          {timeline.map((item, idx) => (
+            <div className="timeline-item" key={item.title + idx}>
               <h3>{item.title}</h3>
               <p>{item.text}</p>
             </div>
@@ -53,3 +77,4 @@ export default function About() {
     </section>
   );
 }
+

@@ -3,18 +3,44 @@
 import { useState } from "react";
 import Link from "next/link";
 import { SOCIAL_LINKS, CAMPAIGN_INFO } from "./content";
+import { HomeContent } from "@/lib/types";
 
-export default function Footer() {
+interface FooterProps {
+  content?: HomeContent;
+}
+
+export default function Footer({ content }: FooterProps) {
   const [copied, setCopied] = useState(false);
+
+  const candidateName =
+    content?.legalCandidateName ||
+    content?.heroCandidateName ||
+    CAMPAIGN_INFO.candidateName;
+  const number =
+    content?.heroNumber || content?.coalitionStat1Num || CAMPAIGN_INFO.number;
+  const cnpj = content?.legalCnpj || CAMPAIGN_INFO.cnpj;
+  const office =
+    content?.legalOffice || content?.coalitionStat2Num || CAMPAIGN_INFO.office;
+  const electionYear =
+    content?.legalElectionYear || CAMPAIGN_INFO.electionYear;
+  const legalNote =
+    content?.legalNote ||
+    "Conteúdo de propaganda eleitoral na internet em conformidade com a Resolução TSE nº 23.610/2019 e Lei nº 9.504/1997.";
+
+  const instagramMain =
+    content?.instagramMainUrl || SOCIAL_LINKS.instagramMain;
+  const instagramSec =
+    content?.instagramSecondaryUrl || SOCIAL_LINKS.instagramSecondary;
+  const tiktok = content?.tiktokUrl || SOCIAL_LINKS.tiktok;
 
   const handleCopyCnpj = async () => {
     try {
-      await navigator.clipboard.writeText(CAMPAIGN_INFO.cnpj);
+      await navigator.clipboard.writeText(cnpj);
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     } catch {
       const textarea = document.createElement("textarea");
-      textarea.value = CAMPAIGN_INFO.cnpj;
+      textarea.value = cnpj;
       document.body.appendChild(textarea);
       textarea.select();
       document.execCommand("copy");
@@ -30,9 +56,9 @@ export default function Footer() {
         <div className="footer-top">
           <div className="od-stack" style={{ ["--od-gap" as string]: "14px" }}>
             <div className="footer-brand">
-              <span className="brand-number">{CAMPAIGN_INFO.number}</span>
+              <span className="brand-number">{number}</span>
               <span className="brand-name" style={{ color: "var(--white)" }}>
-                {CAMPAIGN_INFO.candidateName}
+                {candidateName}
               </span>
             </div>
             <nav className="footer-nav" aria-label="Navegação do rodapé">
@@ -44,19 +70,34 @@ export default function Footer() {
             </nav>
           </div>
           <div className="footer-social">
-            <a href={SOCIAL_LINKS.instagramMain} target="_blank" rel="noopener noreferrer" aria-label="Instagram principal">
+            <a
+              href={instagramMain}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram principal"
+            >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                 <rect x="3" y="3" width="18" height="18" rx="5" />
                 <circle cx="12" cy="12" r="4" />
               </svg>
             </a>
-            <a href={SOCIAL_LINKS.instagramSecondary} target="_blank" rel="noopener noreferrer" aria-label="Instagram da campanha">
+            <a
+              href={instagramSec}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram da campanha"
+            >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                 <rect x="3" y="3" width="18" height="18" rx="5" />
                 <path d="M8 12h8M8 16h5" />
               </svg>
             </a>
-            <a href={SOCIAL_LINKS.tiktok} target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+            <a
+              href={tiktok}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="TikTok"
+            >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                 <path d="M14 4v9.5a3.5 3.5 0 1 1-3.5-3.5" />
                 <path d="M14 4c0 2.5 2 4.5 4.5 4.5" />
@@ -69,7 +110,7 @@ export default function Footer() {
         <section className="legal-card" aria-label="Dados oficiais e transparência da campanha">
           <div className="legal-card-header">
             <div className="legal-badges">
-              <span className="badge-official">ELEIÇÕES {CAMPAIGN_INFO.electionYear}</span>
+              <span className="badge-official">ELEIÇÕES {electionYear}</span>
               <span className="badge-deferida">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <polyline points="20 6 9 17 4 12" />
@@ -88,7 +129,7 @@ export default function Footer() {
               </span>
               <div className="legal-cnpj-action-group">
                 <code className="legal-cnpj-number" id="campaign-cnpj" title="CNPJ oficial de campanha">
-                  {CAMPAIGN_INFO.cnpj}
+                  {cnpj}
                 </code>
                 <button
                   type="button"
@@ -119,7 +160,7 @@ export default function Footer() {
 
           <div className="legal-card-details">
             <p className="legal-candidate">
-              <strong>{CAMPAIGN_INFO.candidateName.toUpperCase()}</strong> — Candidato a {CAMPAIGN_INFO.office} · Número <strong>{CAMPAIGN_INFO.number}</strong>
+              <strong>{candidateName.toUpperCase()}</strong> — Candidato a {office} · Número <strong>{number}</strong>
             </p>
             <p className="legal-coalition">
               Coligação &ldquo;{CAMPAIGN_INFO.coalitionName}&rdquo; — Partidos: <strong>{CAMPAIGN_INFO.parties.join(", ")}</strong>.
@@ -128,9 +169,9 @@ export default function Footer() {
 
           <div className="legal-card-footer">
             <p>
-              Conteúdo de propaganda eleitoral na internet em conformidade com a Resolução TSE nº 23.610/2019 e Lei nº 9.504/1997.
+              {legalNote}
               <br />
-              © {CAMPAIGN_INFO.electionYear} {CAMPAIGN_INFO.candidateName} {CAMPAIGN_INFO.number} — Todos os direitos reservados.
+              © {electionYear} {candidateName} {number} — Todos os direitos reservados.
             </p>
           </div>
         </section>
@@ -138,3 +179,4 @@ export default function Footer() {
     </footer>
   );
 }
+

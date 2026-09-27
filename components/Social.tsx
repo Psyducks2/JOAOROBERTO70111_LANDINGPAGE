@@ -1,4 +1,9 @@
 import { SOCIAL_LINKS } from "./content";
+import { HomeContent } from "@/lib/types";
+
+interface SocialProps {
+  content?: HomeContent;
+}
 
 const InstagramIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -21,53 +26,63 @@ const HeartIcon = () => (
   </svg>
 );
 
-const CARDS = [
-  {
-    href: SOCIAL_LINKS.instagramMain,
-    icon: <InstagramIcon />,
-    name: "Instagram principal",
-    handle: "@joaoroberto.am",
-    meta: "13,6 mil seguidores",
-    verified: true,
-  },
-  {
-    href: SOCIAL_LINKS.instagramSecondary,
-    icon: <InstagramIcon />,
-    name: "Instagram da campanha",
-    handle: "@amazonascomjoaoroberto",
-    meta: "Bastidores e agenda pelo interior",
-  },
-  {
-    href: SOCIAL_LINKS.tiktok,
-    icon: <TikTokIcon />,
-    name: "TikTok",
-    handle: "@joaoviceprefeito",
-    meta: "Vídeos da rotina de campanha",
-  },
-  {
-    href: SOCIAL_LINKS.twibbon,
-    icon: <HeartIcon />,
-    name: "Mostre seu apoio",
-    handle: "Moldura de perfil oficial",
-    meta: "Twibbonize · João Roberto 70111",
-  },
-];
+export default function Social({ content }: SocialProps) {
+  const eyebrow = content?.socialEyebrow || "Acompanhe e apoie";
+  const title = content?.socialTitle || "Redes sociais";
+  const lede =
+    content?.socialLede ||
+    "Siga a campanha e fique por dentro das ações de João Roberto pelo Amazonas.";
 
-export default function Social() {
+  const instagramMain =
+    content?.instagramMainUrl || SOCIAL_LINKS.instagramMain;
+  const instagramSec =
+    content?.instagramSecondaryUrl || SOCIAL_LINKS.instagramSecondary;
+  const tiktok = content?.tiktokUrl || SOCIAL_LINKS.tiktok;
+  const twibbon = content?.twibbonUrl || SOCIAL_LINKS.twibbon;
+
+  const cards = [
+    {
+      href: instagramMain,
+      icon: <InstagramIcon />,
+      name: "Instagram principal",
+      handle: "@joaoroberto.am",
+      meta: "13,6 mil seguidores",
+      verified: true,
+    },
+    {
+      href: instagramSec,
+      icon: <InstagramIcon />,
+      name: "Instagram da campanha",
+      handle: "@amazonascomjoaoroberto",
+      meta: "Bastidores e agenda pelo interior",
+    },
+    {
+      href: tiktok,
+      icon: <TikTokIcon />,
+      name: "TikTok",
+      handle: "@joaoviceprefeito",
+      meta: "Vídeos da rotina de campanha",
+    },
+    {
+      href: twibbon,
+      icon: <HeartIcon />,
+      name: "Mostre seu apoio",
+      handle: "Moldura de perfil oficial",
+      meta: "Twibbonize · João Roberto 70111",
+    },
+  ];
+
   return (
     <section className="section social" id="redes">
       <div className="container">
-        <span className="eyebrow">Acompanhe e apoie</span>
-        <h2 className="title">Redes sociais</h2>
-        <p className="lede">
-          Siga a campanha e fique por dentro das ações de João Roberto pelo
-          Amazonas.
-        </p>
+        <span className="eyebrow">{eyebrow}</span>
+        <h2 className="title">{title}</h2>
+        <p className="lede">{lede}</p>
         <div
           className="od-grid social-grid"
           style={{ ["--od-cols" as string]: 1, ["--od-gap" as string]: "20px" }}
         >
-          {CARDS.map((card) => (
+          {cards.map((card) => (
             <a
               className="social-card"
               href={card.href}
@@ -78,11 +93,16 @@ export default function Social() {
               <span className="social-icon" aria-hidden="true">
                 {card.icon}
               </span>
-              <span className="od-stack" style={{ ["--od-gap" as string]: "2px" }}>
+              <span
+                className="od-stack"
+                style={{ ["--od-gap" as string]: "2px" }}
+              >
                 <span className="social-name">{card.name}</span>
                 <span className="handle">{card.handle}</span>
                 <span className="meta">{card.meta}</span>
-                {card.verified && <span className="badge-verified">✓ Verificado</span>}
+                {card.verified && (
+                  <span className="badge-verified">✓ Verificado</span>
+                )}
               </span>
             </a>
           ))}
@@ -91,3 +111,4 @@ export default function Social() {
     </section>
   );
 }
+

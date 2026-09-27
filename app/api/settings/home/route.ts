@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { adminDb } from "@/lib/firebase-admin";
 import { verifyAdminRequest } from "@/lib/auth-helpers";
 import { getHomeContent, invalidateCache } from "@/lib/posts";
@@ -20,10 +21,8 @@ export async function POST(request: NextRequest) {
 
     const current = await getHomeContent();
     const updated: HomeContent = {
-      heroTagline: body.heroTagline ?? current.heroTagline,
-      heroSubtitle: body.heroSubtitle ?? current.heroSubtitle,
-      aboutHighlight: body.aboutHighlight ?? current.aboutHighlight,
-      twibbonUrl: body.twibbonUrl ?? current.twibbonUrl,
+      ...current,
+      ...body,
       updatedAt: new Date().toISOString(),
     };
 
@@ -33,9 +32,16 @@ export async function POST(request: NextRequest) {
 
     invalidateCache();
 
+    try {
+      revalidatePath("/");
+    } catch (e) {
+      console.warn("revalidatePath error:", e);
+    }
+
     return NextResponse.json({ success: true, content: updated });
   } catch (error) {
     console.error("Erro ao salvar dados da Home:", error);
     return NextResponse.json({ error: "Falha ao salvar dados da Home" }, { status: 500 });
   }
 }
+
